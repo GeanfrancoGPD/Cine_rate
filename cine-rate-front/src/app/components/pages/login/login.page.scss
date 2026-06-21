@@ -1,0 +1,72 @@
+.cinematic-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #0b1326;
+  z-index: -2;
+}
+
+.cinematic-bg::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 50%;
+  height: 50%;
+  background: rgba(221, 183, 255, 0.1);
+  filter: blur(120px);
+  border-radius: 50%;
+}
+
+.cinematic-bg::after {
+  content: '';
+  position: absolute;
+  bottom: -10%;
+  right: -10%;
+  width: 50%;
+  height: 50%;
+  background: rgba(47, 217, 244, 0.08);
+  filter: blur(120px);
+  border-radius: 50%;
+}
+
+.glass-panel {
+  background: rgba(19, 27, 46, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 24px;
+  position: relative;
+  z-index: 1;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.footer {
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: #cfc2d6;
+  opacity: 0.4;
+  text-transform: uppercase;
+  margin-top: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+ion-content {
+  --background: transparent;
+  --padding-bottom: 20px;
+  --padding-top: 20px;
+}
+
+@media (max-width: 480px) {
+  .glass-panel {
+    margin: 0 16px;
+    padding: 20px;
+  }
+}

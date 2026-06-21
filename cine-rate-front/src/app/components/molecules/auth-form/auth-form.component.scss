@@ -1,0 +1,70 @@
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.input-label {
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: #cfc2d6;
+  text-transform: uppercase;
+}
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  background: rgba(6, 14, 32, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0 16px;
+  transition: all 0.3s ease;
+}
+.input-wrapper:focus-within {
+  border-color: #ddb7ff;
+  box-shadow: 0 0 10px rgba(221, 183, 255, 0.2);
+}
+.input-icon {
+  font-size: 20px;
+  color: #cfc2d6;
+  opacity: 0.6;
+  margin-right: 12px;
+}
+.custom-input {
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+  --color: #dae2fd;
+  --placeholder-color: rgba(207, 194, 214, 0.3);
+  flex: 1;
+}
+.glow-button {
+  width: 100%;
+  background: #ddb7ff;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 24px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(221, 183, 255, 0.3);
+}
+.glow-button:active {
+  transform: scale(0.98);
+}
+.glow-button ion-icon {
+  font-size: 18px;
+}

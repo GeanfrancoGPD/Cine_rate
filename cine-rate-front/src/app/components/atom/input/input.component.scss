@@ -1,0 +1,88 @@
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+}
+
+.input-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: #cfc2d6;
+  text-transform: uppercase;
+}
+
+.forgot-link {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #2fd9f4;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  background: rgba(6, 14, 32, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0 16px;
+  transition: all 0.3s ease;
+}
+
+.input-wrapper:focus-within {
+  border-color: #ddb7ff;
+  box-shadow: 0 0 10px rgba(221, 183, 255, 0.2);
+}
+
+.input-wrapper.error {
+  border-color: #ffb4ab;
+}
+
+.input-icon {
+  font-size: 20px;
+  color: #cfc2d6;
+  opacity: 0.6;
+  margin-right: 12px;
+  transition: color 0.3s ease;
+}
+
+.input-wrapper:focus-within .input-icon {
+  color: #ddb7ff;
+}
+
+.custom-input {
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+  --color: #dae2fd;
+  --placeholder-color: rgba(207, 194, 214, 0.3);
+  --placeholder-opacity: 1;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  flex: 1;
+}
+
+.toggle-btn {
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  height: 32px;
+  margin: 0;
+  --color: #cfc2d6;
+}

@@ -1,0 +1,44 @@
+.glow-button {
+  width: 100%;
+  background: #ddb7ff;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 24px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(221, 183, 255, 0.3);
+  
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 0 30px rgba(221, 183, 255, 0.5);
+  }
+  
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+.glow-button.outline {
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+  box-shadow: none;
+}

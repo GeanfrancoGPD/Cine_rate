@@ -1,0 +1,38 @@
+.logo-container {
+  text-align: center;
+  margin-bottom: 32px;
+  margin-top: 20px;
+}
+
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.logo-icon {
+  font-size: 48px;
+  color: #ddb7ff;
+  --ionicon-stroke-width: 16px;
+}
+
+.app-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ddb7ff, #b76dff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+
+.tagline {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #cfc2d6;
+  opacity: 0.8;
+  margin: 0;
+}

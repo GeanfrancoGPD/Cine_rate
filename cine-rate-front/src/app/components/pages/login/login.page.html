@@ -1,0 +1,20 @@
+<ion-content class="ion-padding">
+  <div class="cinematic-bg"></div>
+  
+  <app-logo></app-logo>
+  
+  <div class="glass-panel">
+    <mode-selector [(mode)]="mode" (modeChange)="onModeChange($event)"></mode-selector>
+    
+    <auth-form 
+      [mode]="mode" 
+      (submitForm)="handleSubmit($event)">
+    </auth-form>
+    
+    <terms-footer (termsClick)="showTerms()"></terms-footer>
+  </div>
+  
+  <footer class="footer">
+    © 2026 CINERATE STUDIO
+  </footer>
+</ion-content>
