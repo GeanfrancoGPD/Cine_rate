@@ -1,0 +1,5 @@
+data/DBConfig.json
+node_modules/
+
+.env
+

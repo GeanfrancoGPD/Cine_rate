@@ -1,0 +1,243 @@
+{
+  "getUsers": {
+    "query": "SELECT id, nombre, email, tipo, fecha_creacion FROM usuarios ORDER BY id",
+    "structure_params": {},
+    "orderArray": []
+  },
+
+  "getUser": {
+    "query": "SELECT id, nombre, email, password_hash, tipo FROM usuarios WHERE email = $1",
+    "structure_params": {
+      "email": "string"
+    },
+    "orderArray": ["email"]
+  },
+
+  "getUserById": {
+    "query": "SELECT id, nombre, email, tipo, fecha_creacion FROM usuarios WHERE id = $1",
+    "structure_params": {
+      "id": "number"
+    },
+    "orderArray": ["id"]
+  },
+
+  "createUser": {
+    "query": "INSERT INTO usuarios (nombre, email, password_hash, tipo) VALUES ($1, $2, $3, $4) RETURNING id, nombre, email, tipo",
+    "structure_params": {
+      "nombre": "string",
+      "email": "string",
+      "password_hash": "string",
+      "tipo": "string"
+    },
+    "orderArray": ["nombre", "email", "password_hash", "tipo"]
+  },
+
+  "updateUser": {
+    "query": "UPDATE usuarios SET nombre = $1, email = $2, tipo = $3 WHERE id = $4 RETURNING id, nombre, email, tipo",
+    "structure_params": {
+      "nombre": "string",
+      "email": "string",
+      "tipo": "string",
+      "id": "number"
+    },
+    "orderArray": ["nombre", "email", "tipo", "id"]
+  },
+
+  "updatePassword": {
+    "query": "UPDATE usuarios SET password_hash = $1 WHERE id = $2 RETURNING id",
+    "structure_params": {
+      "password_hash": "string",
+      "id": "number"
+    },
+    "orderArray": ["password_hash", "id"]
+  },
+
+  "deleteUser": {
+    "query": "DELETE FROM usuarios WHERE id = $1 RETURNING id, nombre, email",
+    "structure_params": {
+      "id": "number"
+    },
+    "orderArray": ["id"]
+  },
+
+  "getContenidos": {
+    "query": "SELECT * FROM contenidos ORDER BY titulo",
+    "structure_params": {},
+    "orderArray": []
+  },
+
+  "getContenidoById": {
+    "query": "SELECT * FROM contenidos WHERE id = $1",
+    "structure_params": {
+      "id": "number"
+    },
+    "orderArray": ["id"]
+  },
+
+  "getContenidoByTmdbId": {
+    "query": "SELECT * FROM contenidos WHERE tmdb_id = $1",
+    "structure_params": {
+      "tmdb_id": "number"
+    },
+    "orderArray": ["tmdb_id"]
+  },
+
+  "createContenido": {
+    "query": "INSERT INTO contenidos (tmdb_id, tipo, titulo, sinopsis, fecha_lanzamiento, poster_url, backdrop_url, puntuacion_tmdb, popularidad) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *",
+    "structure_params": {
+      "tmdb_id": "number",
+      "tipo": "string",
+      "titulo": "string",
+      "sinopsis": "string",
+      "fecha_lanzamiento": "string",
+      "poster_url": "string",
+      "backdrop_url": "string",
+      "puntuacion_tmdb": "number",
+      "popularidad": "number"
+    },
+    "orderArray": [
+      "tmdb_id",
+      "tipo",
+      "titulo",
+      "sinopsis",
+      "fecha_lanzamiento",
+      "poster_url",
+      "backdrop_url",
+      "puntuacion_tmdb",
+      "popularidad"
+    ]
+  },
+
+  "updateContenido": {
+    "query": "UPDATE contenidos SET titulo=$1, sinopsis=$2, fecha_lanzamiento=$3 WHERE id=$4 RETURNING *",
+    "structure_params": {
+      "titulo": "string",
+      "sinopsis": "string",
+      "fecha_lanzamiento": "string",
+      "id": "number"
+    },
+    "orderArray": ["titulo", "sinopsis", "fecha_lanzamiento", "id"]
+  },
+
+  "deleteContenido": {
+    "query": "DELETE FROM contenidos WHERE id = $1 RETURNING id",
+    "structure_params": {
+      "id": "number"
+    },
+    "orderArray": ["id"]
+  },
+
+  "getComentariosByContenido": {
+    "query": "SELECT c.id, c.comentario, c.fecha_creacion, u.id AS usuario_id, u.nombre FROM comentarios c INNER JOIN usuarios u ON c.usuario_id = u.id WHERE c.contenido_id = $1 ORDER BY c.fecha_creacion DESC",
+    "structure_params": {
+      "contenido_id": "number"
+    },
+    "orderArray": ["contenido_id"]
+  },
+
+  "getComentarioById": {
+    "query": "SELECT * FROM comentarios WHERE id = $1",
+    "structure_params": {
+      "id": "number"
+    },
+    "orderArray": ["id"]
+  },
+
+  "createComentario": {
+    "query": "INSERT INTO comentarios (usuario_id, contenido_id, comentario) VALUES ($1,$2,$3) RETURNING *",
+    "structure_params": {
+      "usuario_id": "number",
+      "contenido_id": "number",
+      "comentario": "string"
+    },
+    "orderArray": ["usuario_id", "contenido_id", "comentario"]
+  },
+
+  "updateComentario": {
+    "query": "UPDATE comentarios SET comentario = $1 WHERE id = $2 RETURNING *",
+    "structure_params": {
+      "comentario": "string",
+      "id": "number"
+    },
+    "orderArray": ["comentario", "id"]
+  },
+
+  "deleteComentario": {
+    "query": "DELETE FROM comentarios WHERE id = $1 RETURNING id",
+    "structure_params": {
+      "id": "number"
+    },
+    "orderArray": ["id"]
+  },
+
+  "createRatingUsuario": {
+    "query": "INSERT INTO ratings_usuario (usuario_id, contenido_id, puntaje) VALUES ($1,$2,$3) ON CONFLICT (usuario_id, contenido_id) DO UPDATE SET puntaje = EXCLUDED.puntaje RETURNING *",
+    "structure_params": {
+      "usuario_id": "number",
+      "contenido_id": "number",
+      "puntaje": "number"
+    },
+    "orderArray": ["usuario_id", "contenido_id", "puntaje"]
+  },
+
+  "getRatingUsuariosPromedio": {
+    "query": "SELECT contenido_id, ROUND(AVG(puntaje)::numeric,2) AS promedio FROM ratings_usuario WHERE contenido_id = $1 GROUP BY contenido_id",
+    "structure_params": {
+      "contenido_id": "number"
+    },
+    "orderArray": ["contenido_id"]
+  },
+
+  "createRatingCritico": {
+    "query": "INSERT INTO ratings_critico (usuario_id, contenido_id, puntaje) VALUES ($1,$2,$3) ON CONFLICT (usuario_id, contenido_id) DO UPDATE SET puntaje = EXCLUDED.puntaje RETURNING *",
+    "structure_params": {
+      "usuario_id": "number",
+      "contenido_id": "number",
+      "puntaje": "number"
+    },
+    "orderArray": ["usuario_id", "contenido_id", "puntaje"]
+  },
+
+  "getRatingCriticosPromedio": {
+    "query": "SELECT contenido_id, ROUND(AVG(puntaje)::numeric,2) AS promedio FROM ratings_critico WHERE contenido_id = $1 GROUP BY contenido_id",
+    "structure_params": {
+      "contenido_id": "number"
+    },
+    "orderArray": ["contenido_id"]
+  },
+
+  "getContenidoDetalle": {
+    "query": "SELECT c.*, COALESCE((SELECT ROUND(AVG(puntaje)::numeric,2) FROM ratings_usuario ru WHERE ru.contenido_id = c.id),0) AS rating_usuarios, COALESCE((SELECT ROUND(AVG(puntaje)::numeric,2) FROM ratings_critico rc WHERE rc.contenido_id = c.id),0) AS rating_criticos, COALESCE((SELECT COUNT(*) FROM comentarios cm WHERE cm.contenido_id = c.id),0) AS total_comentarios FROM contenidos c WHERE c.id = $1",
+    "structure_params": {
+      "id": "number"
+    },
+    "orderArray": ["id"]
+  },
+  "searchByTitle": {
+    "query": "SELECT * FROM contenidos WHERE LOWER(titulo) LIKE LOWER($1)",
+    "structure_params": {
+      "titulo": "string"
+    },
+    "orderArray": ["titulo"]
+  },
+
+  "sortByDate": {
+    "query": "SELECT * FROM contenidos ORDER BY fecha_lanzamiento DESC",
+    "structure_params": {},
+    "orderArray": []
+  },
+
+  "sortByUserRating": {
+    "query": "SELECT c.*, AVG(ru.puntaje) promedio FROM contenidos c INNER JOIN ratings_usuario ru ON ru.contenido_id = c.id GROUP BY c.id ORDER BY promedio DESC",
+    "structure_params": {},
+    "orderArray": []
+  },
+
+  "filterByGenero": {
+    "query": "SELECT c.* FROM contenidos c INNER JOIN contenido_genero cg ON cg.contenido_id = c.id INNER JOIN generos g ON g.id = cg.genero_id WHERE g.nombre = $1",
+    "structure_params": {
+      "nombre": "string"
+    },
+    "orderArray": ["nombre"]
+  }
+}
