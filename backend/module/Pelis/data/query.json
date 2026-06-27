@@ -241,8 +241,52 @@
     "orderArray": ["nombre"]
   },
   "getPopularMovies": {
-    "query": "SELECT * FROM contenidos WHERE tipo = 'PELICULA' ORDER BY fecha_importacion DESC LIMIT 50",
+    "query": "SELECT id, tmdb_id, tipo, titulo, sinopsis, fecha_lanzamiento, poster_url, backdrop_url, puntuacion_tmdb, popularidad, fecha_importacion FROM public.contenidos LIMIT 1000",
     "structure_params": {},
     "orderArray": []
+  },
+  "getGeneros": {
+    "query": "SELECT * FROM generos",
+    "structure_params": {},
+    "orderArray": []
+  },
+  "createGenero": {
+    "query": "INSERT INTO generos (tmdb_genero_id, nombre) VALUES ($1, $2) ON CONFLICT (tmdb_genero_id) DO UPDATE SET nombre = EXCLUDED.nombre RETURNING *",
+    "structure_params": {
+      "tmdb_genero_id": "number",
+      "nombre": "string"
+    },
+    "orderArray": ["tmdb_genero_id", "nombre"]
+  },
+  "createContenidoGenero": {
+    "query": "INSERT INTO contenido_genero (contenido_id, genero_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+    "structure_params": {
+      "contenido_id": "number",
+      "genero_id": "number"
+    },
+    "orderArray": ["contenido_id", "genero_id"]
+  },
+  "createFavorito": {
+    "query": "INSERT INTO favoritos (usuario_id, contenido_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+    "structure_params": {
+      "usuario_id": "number",
+      "contenido_id": "number"
+    },
+    "orderArray": ["usuario_id", "contenido_id"]
+  },
+  "getFavoritos": {
+    "query": "SELECT c.* FROM contenidos c INNER JOIN favoritos f ON f.contenido_id = c.id WHERE f.usuario_id = $1",
+    "structure_params": {
+      "usuario_id": "number"
+    },
+    "orderArray": ["usuario_id"]
+  },
+  "deleteFavorito": {
+    "query": "DELETE FROM favoritos WHERE usuario_id = $1 AND contenido_id = $2",
+    "structure_params": {
+      "usuario_id": "number",
+      "contenido_id": "number"
+    },
+    "orderArray": ["usuario_id", "contenido_id"]
   }
 }

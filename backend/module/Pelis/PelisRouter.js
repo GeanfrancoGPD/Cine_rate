@@ -36,9 +36,22 @@ router.get("/popular-movies", async (req, res) => {
   await pelisBO.getPopularMovies(req, res);
 });
 
-// router.get("/search-movie", async (req, res) => {
-//   await pelisBO.searchMovie(req, res);
-// });
+router.get("/search-movie", async (req, res) => {
+  await pelisBO.searchMovie(req, res);
+});
+
+// ================== Favoritos ===================
+router.post("/favorites", authMiddleware, async (req, res) => {
+  await pelisBO.addFavorito(req, res);
+});
+
+router.get("/favorites", authMiddleware, async (req, res) => {
+  await pelisBO.getFavoritos(req, res);
+});
+
+router.delete("/favorites/:contenidoId", authMiddleware, async (req, res) => {
+  await pelisBO.removeFavorito(req, res);
+});
 
 // router.get("/movies/:id", async (req, res) => {
 //   await pelisBO.getMovieDetails(req, res);

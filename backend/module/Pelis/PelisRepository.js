@@ -35,6 +35,28 @@ export default class PelisRepository {
     return await this.db.excecuteNameQuery("getPopularMovies", {});
   }
 
+  async searchByTitle(titulo) {
+    return await this.db.excecuteNameQuery("searchByTitle", { titulo });
+  }
+
+  async getGeneros() {
+    return await this.db.excecuteNameQuery("getGeneros", {});
+  }
+
+  async createGenero(tmdb_genero_id, nombre) {
+    return await this.db.excecuteNameQuery("createGenero", {
+      tmdb_genero_id,
+      nombre,
+    });
+  }
+
+  async createContenidoGenero(contenido_id, genero_id) {
+    return await this.db.excecuteNameQuery("createContenidoGenero", {
+      contenido_id,
+      genero_id,
+    });
+  }
+
   async createContenido(contenidos) {
     if (!Array.isArray(contenidos)) contenidos = [contenidos];
     console.log("Creando contenido en la base de datos:", contenidos);
@@ -43,5 +65,23 @@ export default class PelisRepository {
     });
 
     return await Promise.all(promesas);
+  }
+
+  async addFavorito(usuario_id, contenido_id) {
+    return await this.db.excecuteNameQuery("createFavorito", {
+      usuario_id,
+      contenido_id,
+    });
+  }
+
+  async getFavoritos(usuario_id) {
+    return await this.db.excecuteNameQuery("getFavoritos", { usuario_id });
+  }
+
+  async removeFavorito(usuario_id, contenido_id) {
+    return await this.db.excecuteNameQuery("deleteFavorito", {
+      usuario_id,
+      contenido_id,
+    });
   }
 }

@@ -181,45 +181,80 @@ export default class PelisBO {
 
   // ================== Contenido ===================
 
-  async getPopularMovies() {
+  async getGenres(req, res) {
     try {
-      // 1. Intentar obtener de la base de datos local
+      if (Object.keys(this.repositoryApi.mapaGeneros).length === 0) {
+        const generosBD = await this.repository.getGeneros();
+        if (generosBD && generosBD.length > 0) {
+          generosBD.forEach((g) => {
+            this.repositoryApi.mapaGeneros[g.tmdb_genero_id] = g.nombre;
+          });
+        } else {
+          const apiGeneros = await this.repositoryApi.cargarMapaGeneros();
+          if (apiGeneros && apiGeneros.genres) {
+            for (const genero of apiGeneros.genres) {
+              await this.repository.createGenero(genero.id, genero.name);
+              this.repositoryApi.mapaGeneros[genero.id] = genero.name;
+            }
+          }
+        }
+      }
+      return res.json({ success: true, data: this.repositoryApi.mapaGeneros });
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Error al cargar géneros" });
+    }
+  }
+
+  async getPopularMovies(req, res) {
+    try {
       let data = await this.repository.getPopularMovies();
 
-      // 2. Si no hay datos locales, ir a la API externa de TMDB
       if (!data || data.length === 0) {
         const apiData = await this.repositoryApi.getPopularMovies();
 
         if (Array.isArray(apiData) && apiData.length > 0) {
-          // Mapeamos todo el lote en memoria súper rápido
-          const contenidosMapeados = apiData.map((item) => ({
-            tmdb_id: item.id,
-            tipo: "PELICULA",
-            titulo: item.original_title,
-            sinopsis: item.overview,
-            fecha_lanzamiento: item.release_date,
-            poster_url: item.poster_path
-              ? "https://image.tmdb.org/t/p/w780" + item.poster_path
-              : null,
-            backdrop_url: item.backdrop_path
-              ? "https://image.tmdb.org/t/p/w780" + item.backdrop_path
-              : null,
-            puntuacion_tmdb: item.vote_average,
-            popularidad: item.popularity,
-          }));
+          data = [];
+          for (const item of apiData) {
+            const nuevoContenido = await this.repository.createContenido([
+              {
+                tmdb_id: item.id,
+                tipo: "PELICULA",
+                titulo: item.original_title,
+                sinopsis: item.overview,
+                fecha_lanzamiento: item.release_date,
+                poster_url: item.poster_path
+                  ? "https://image.tmdb.org/t/p/w780" + item.poster_path
+                  : null,
+                backdrop_url: item.backdrop_path
+                  ? "https://image.tmdb.org/t/p/w780" + item.backdrop_path
+                  : null,
+                puntuacion_tmdb: item.vote_average,
+                popularidad: item.popularity,
+              },
+            ]);
 
-          // 3. Guardamos TODO el lote en la base de datos de una sola vez
-          await this.repository.createContenido(contenidosMapeados);
-
-          // Asignamos el resultado para devolverlo de inmediato
-          data = contenidosMapeados;
+            const contenidoId = nuevoContenido[0][0].id;
+            if (item.genre_ids) {
+              for (const genreId of item.genre_ids) {
+                await this.repository.createContenidoGenero(
+                  contenidoId,
+                  genreId,
+                );
+              }
+            }
+            data.push({ ...nuevoContenido[0][0], genre_ids: item.genre_ids });
+          }
         }
       }
 
-      return data ?? [];
+      return res.status(200).json({ success: true, data });
     } catch (error) {
-      // Propagamos el error para que el controlador lo capture en su catch
-      throw error;
+      return res.status(500).json({
+        success: false,
+        message: "Error al obtener películas populares",
+      });
     }
   }
 
@@ -234,12 +269,105 @@ export default class PelisBO {
     }
 
     try {
-      const data = await this.repositoryApi.buscarPelicula(nombre);
-      return res.json({ success: true, data: data ?? [] });
+      let data = await this.repository.searchByTitle(`${nombre}`);
+
+      if (!data || data.length === 0) {
+        const apiData = await this.repositoryApi.buscarPelicula(nombre);
+        data = [];
+        if (apiData && apiData.length > 0) {
+          for (const item of apiData) {
+            const nuevoContenido = await this.repository.createContenido([
+              {
+                tmdb_id: item.id,
+                tipo: "PELICULA",
+                titulo: item.title,
+                sinopsis: item.overview,
+                fecha_lanzamiento: item.release_date,
+                poster_url: item.poster_path
+                  ? "https://image.tmdb.org/t/p/w780" + item.poster_path
+                  : null,
+                backdrop_url: item.backdrop_path
+                  ? "https://image.tmdb.org/t/p/w780" + item.backdrop_path
+                  : null,
+                puntuacion_tmdb: item.vote_average,
+                popularidad: item.popularity,
+              },
+            ]);
+
+            const contenidoId = nuevoContenido[0][0].id;
+            if (item.genre_ids) {
+              for (const genreId of item.genre_ids) {
+                await this.repository.createContenidoGenero(
+                  contenidoId,
+                  genreId,
+                );
+              }
+            }
+            data.push({ ...nuevoContenido[0][0], genre_ids: item.genre_ids });
+          }
+        }
+      }
+      return res.json({ success: true, data });
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ success: false, message: "No se pudo buscar la película" });
+    }
+  }
+
+  async addFavorito(req, res) {
+    try {
+      const usuarioId = req.session.user.id;
+      const { contenidoId } = req.body;
+
+      if (!contenidoId) {
+        return res.status(400).json({
+          success: false,
+          message: "El ID del contenido es requerido",
+        });
+      }
+
+      await this.repository.addFavorito(usuarioId, contenidoId);
+      return res.json({ success: true, message: "Favorito agregado" });
     } catch (error) {
       return res.status(500).json({
         success: false,
-        message: "No se pudo buscar la película",
+        message: "No se pudo agregar el favorito",
+      });
+    }
+  }
+
+  async getFavoritos(req, res) {
+    try {
+      const usuarioId = req.session.user.id;
+      const data = await this.repository.getFavoritos(usuarioId);
+      return res.json({ success: true, data });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "No se pudieron cargar los favoritos",
+      });
+    }
+  }
+
+  async removeFavorito(req, res) {
+    try {
+      const usuarioId = req.session.user.id;
+      const { contenidoId } = req.params;
+
+      if (!contenidoId) {
+        return res.status(400).json({
+          success: false,
+          message: "El ID del contenido es requerido",
+        });
+      }
+
+      await this.repository.removeFavorito(usuarioId, contenidoId);
+      return res.json({ success: true, message: "Favorito eliminado" });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "No se pudo eliminar el favorito",
       });
     }
   }
