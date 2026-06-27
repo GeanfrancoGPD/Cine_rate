@@ -26,4 +26,22 @@ router.get("/users", async (req, res) => {
   await pelisBO.getAllUsers(req, res);
 });
 
+router.get("/auth-check", authMiddleware, async (req, res) => {
+  await pelisBO.authCheck(req, res);
+});
+
+// ================== Contenido ===================
+
+router.get("/popular-movies", async (req, res) => {
+  await pelisBO.getPopularMovies(req, res);
+});
+
+// router.get("/search-movie", async (req, res) => {
+//   await pelisBO.searchMovie(req, res);
+// });
+
+// router.get("/movies/:id", async (req, res) => {
+//   await pelisBO.getMovieDetails(req, res);
+// });
+
 export default router;

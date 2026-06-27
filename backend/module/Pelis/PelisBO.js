@@ -2,10 +2,12 @@ import PelisRepository from "./PelisRepository.js";
 import Session from "../../components/session.js";
 import UtilBycript from "../../util/bycript.js";
 import Validator from "../../util/validator.js";
+import PelisApiRepository from "./PelisApiRepositoy.js";
 
 export default class PelisBO {
   constructor() {
     this.repository = new PelisRepository();
+    this.repositoryApi = new PelisApiRepository();
     this.session = Session;
     this.bcrypt = UtilBycript;
     this.validator = Validator;
@@ -27,6 +29,7 @@ export default class PelisBO {
     return Number.isFinite(parsed) ? parsed : null;
   }
 
+  // ==================== AUTENTICACIÓN ====================
   async login(req, res) {
     const { gmail, password } = req.body;
 
@@ -156,6 +159,87 @@ export default class PelisBO {
       return res.status(500).json({
         success: false,
         message: "No se pudieron cargar los usuarios",
+      });
+    }
+  }
+
+  async authCheck(req, res) {
+    const exists = this.session.sessionExist({ request: req, response: res });
+    if (exists) {
+      return res.json({
+        success: true,
+        message: "Usuario autenticado",
+        user: req.session.user,
+      });
+    } else {
+      return res.status(401).json({
+        success: false,
+        message: "Usuario no autenticado",
+      });
+    }
+  }
+
+  // ================== Contenido ===================
+
+  async getPopularMovies() {
+    try {
+      // 1. Intentar obtener de la base de datos local
+      let data = await this.repository.getPopularMovies();
+
+      // 2. Si no hay datos locales, ir a la API externa de TMDB
+      if (!data || data.length === 0) {
+        const apiData = await this.repositoryApi.getPopularMovies();
+
+        if (Array.isArray(apiData) && apiData.length > 0) {
+          // Mapeamos todo el lote en memoria súper rápido
+          const contenidosMapeados = apiData.map((item) => ({
+            tmdb_id: item.id,
+            tipo: "PELICULA",
+            titulo: item.original_title,
+            sinopsis: item.overview,
+            fecha_lanzamiento: item.release_date,
+            poster_url: item.poster_path
+              ? "https://image.tmdb.org/t/p/w780" + item.poster_path
+              : null,
+            backdrop_url: item.backdrop_path
+              ? "https://image.tmdb.org/t/p/w780" + item.backdrop_path
+              : null,
+            puntuacion_tmdb: item.vote_average,
+            popularidad: item.popularity,
+          }));
+
+          // 3. Guardamos TODO el lote en la base de datos de una sola vez
+          await this.repository.createContenido(contenidosMapeados);
+
+          // Asignamos el resultado para devolverlo de inmediato
+          data = contenidosMapeados;
+        }
+      }
+
+      return data ?? [];
+    } catch (error) {
+      // Propagamos el error para que el controlador lo capture en su catch
+      throw error;
+    }
+  }
+
+  async searchMovie(req, res) {
+    const { nombre } = req.query;
+
+    if (!nombre) {
+      return res.status(400).json({
+        success: false,
+        message: "El nombre de la película es requerido",
+      });
+    }
+
+    try {
+      const data = await this.repositoryApi.buscarPelicula(nombre);
+      return res.json({ success: true, data: data ?? [] });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "No se pudo buscar la película",
       });
     }
   }

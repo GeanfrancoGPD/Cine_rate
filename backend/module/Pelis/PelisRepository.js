@@ -30,4 +30,18 @@ export default class PelisRepository {
   async getAllUsers() {
     return await this.db.excecuteNameQuery("getAllUsers", {});
   }
+
+  async getPopularMovies() {
+    return await this.db.excecuteNameQuery("getPopularMovies", {});
+  }
+
+  async createContenido(contenidos) {
+    if (!Array.isArray(contenidos)) contenidos = [contenidos];
+    console.log("Creando contenido en la base de datos:", contenidos);
+    const promesas = contenidos.map((pelicula) => {
+      return this.db.excecuteNameQuery("createContenido", pelicula);
+    });
+
+    return await Promise.all(promesas);
+  }
 }

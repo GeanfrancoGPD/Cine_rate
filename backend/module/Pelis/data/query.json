@@ -239,5 +239,10 @@
       "nombre": "string"
     },
     "orderArray": ["nombre"]
+  },
+  "getPopularMovies": {
+    "query": "SELECT * FROM contenidos WHERE tipo = 'PELICULA' ORDER BY fecha_importacion DESC LIMIT 50",
+    "structure_params": {},
+    "orderArray": []
   }
 }
