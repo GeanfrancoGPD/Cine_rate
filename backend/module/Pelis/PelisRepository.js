@@ -84,4 +84,53 @@ export default class PelisRepository {
       contenido_id,
     });
   }
+
+  // Comentarios
+  async createComentario(usuario_id, contenido_id, comentario) {
+    return await this.db.excecuteNameQuery("createComentario", {
+      usuario_id,
+      contenido_id,
+      comentario,
+    });
+  }
+
+  async getComentariosByContenido(contenido_id) {
+    return await this.db.excecuteNameQuery("getComentariosByContenido", {
+      contenido_id,
+    });
+  }
+
+  async deleteComentario(id) {
+    return await this.db.excecuteNameQuery("deleteComentario", { id });
+  }
+
+  // Ratings de Usuario
+  async createRatingUsuario(usuario_id, contenido_id, puntaje) {
+    return await this.db.excecuteNameQuery("createRatingUsuario", {
+      usuario_id,
+      contenido_id,
+      puntaje,
+    });
+  }
+
+  async getRatingUsuariosPromedio(contenido_id) {
+    return await this.db.excecuteNameQuery("getRatingUsuariosPromedio", {
+      contenido_id,
+    });
+  }
+
+  // Ratings de Críticos
+  async createRatingCritico(usuario_id, contenido_id, puntaje) {
+    return await this.db.excecuteNameQuery("createRatingCritico", {
+      usuario_id,
+      contenido_id,
+      puntaje,
+    });
+  }
+
+  async getRatingCriticosPromedio(contenido_id) {
+    return await this.db.excecuteNameQuery("getRatingCriticosPromedio", {
+      contenido_id,
+    });
+  }
 }

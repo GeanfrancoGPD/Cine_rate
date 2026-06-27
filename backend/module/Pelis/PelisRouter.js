@@ -57,4 +57,39 @@ router.delete("/favorites/:contenidoId", authMiddleware, async (req, res) => {
 //   await pelisBO.getMovieDetails(req, res);
 // });
 
+// ================== Comentarios ===================
+router.post("/comments", authMiddleware, async (req, res) => {
+  await pelisBO.addComentario(req, res);
+});
+
+router.get("/comments/:contenidoId", async (req, res) => {
+  // Los comentarios se pueden ver sin autenticación
+  await pelisBO.getComentarios(req, res);
+});
+
+router.delete("/comments/:id", authMiddleware, async (req, res) => {
+  // Solo el autor o un admin debería poder borrar un comentario, aquí solo protegemos con auth
+  await pelisBO.deleteComentario(req, res);
+});
+
+// ================== Ratings de Usuario ===================
+router.post("/ratings", authMiddleware, async (req, res) => {
+  await pelisBO.addRatingUsuario(req, res);
+});
+
+router.get("/ratings/:contenidoId/average", async (req, res) => {
+  // El promedio de ratings puede ser público
+  await pelisBO.getRatingUsuariosPromedio(req, res);
+});
+
+router.post("/critics-ratings", authMiddleware, async (req, res) => {
+  await pelisBO.addRatingCritico(req, res);
+});
+
+// ================== Ratings de Críticos ===================
+router.get("/critics-ratings/:contenidoId/average", async (req, res) => {
+  // El promedio de ratings de crítico puede ser público
+  await pelisBO.getRatingCriticosPromedio(req, res);
+});
+
 export default router;

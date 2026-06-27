@@ -371,4 +371,219 @@ export default class PelisBO {
       });
     }
   }
+  // ================== Comentarios ===================
+  async addComentario(req, res) {
+    try {
+      const usuarioId = req.session.user.id; // Aquí usarías resolveUserId
+      const { contenidoId, comentario } = req.body;
+
+      if (!contenidoId || !comentario) {
+        return res.status(400).json({
+          success: false,
+          message: "Datos incompletos para el comentario",
+        });
+      }
+
+      const nuevoComentario = await this.repository.createComentario(
+        usuarioId,
+        contenidoId,
+        comentario,
+      );
+      return res.status(201).json({
+        success: true,
+        message: "Comentario agregado",
+        data: nuevoComentario,
+      });
+    } catch (error) {
+      console.error("Error al agregar comentario:", error);
+      return res
+        .status(500)
+        .json({ success: false, message: "No se pudo agregar el comentario" });
+    }
+  }
+
+  async getComentarios(req, res) {
+    try {
+      const { contenidoId } = req.params;
+
+      if (!contenidoId) {
+        return res
+          .status(400)
+          .json({ success: false, message: "ID de contenido requerido" });
+      }
+
+      const data = await this.repository.getComentariosByContenido(contenidoId);
+      return res.json({ success: true, data });
+    } catch (error) {
+      console.error("Error al obtener comentarios:", error);
+      return res.status(500).json({
+        success: false,
+        message: "No se pudieron cargar los comentarios",
+      });
+    }
+  }
+
+  async deleteComentario(req, res) {
+    try {
+      const { id } = req.params; // ID del comentario a eliminar
+
+      if (!id) {
+        return res
+          .status(400)
+          .json({ success: false, message: "ID de comentario requerido" });
+      }
+
+      await this.repository.deleteComentario(id);
+      return res.json({ success: true, message: "Comentario eliminado" });
+    } catch (error) {
+      console.error("Error al eliminar comentario:", error);
+      return res
+        .status(500)
+        .json({ success: false, message: "No se pudo eliminar el comentario" });
+    }
+  }
+
+  // ================== Ratings de Usuario ===================
+  async addRatingUsuario(req, res) {
+    try {
+      const usuarioId = await this.resolveUserId(req); // Usar resolveUserId
+      const { contenidoId, puntaje } = req.body;
+
+      if (!usuarioId || !contenidoId || puntaje === undefined) {
+        return res.status(400).json({
+          success: false,
+          message: "Datos incompletos para el rating",
+        });
+      }
+
+      const parsedPuntaje = parseFloat(puntaje);
+      if (isNaN(parsedPuntaje) || parsedPuntaje < 0 || parsedPuntaje > 10) {
+        return res.status(400).json({
+          success: false,
+          message: "El puntaje debe ser un número entre 0 y 10",
+        });
+      }
+
+      await this.repository.createRatingUsuario(
+        usuarioId,
+        contenidoId,
+        parsedPuntaje,
+      );
+      return res
+        .status(201)
+        .json({ success: true, message: "Rating agregado/actualizado" });
+    } catch (error) {
+      console.error("Error al agregar/actualizar rating de usuario:", error);
+      return res.status(500).json({
+        success: false,
+        message: "No se pudo agregar/actualizar el rating",
+      });
+    }
+  }
+
+  async getRatingUsuariosPromedio(req, res) {
+    try {
+      const { contenidoId } = req.params;
+
+      if (!contenidoId) {
+        return res
+          .status(400)
+          .json({ success: false, message: "ID de contenido requerido" });
+      }
+
+      const data = await this.repository.getRatingUsuariosPromedio(contenidoId);
+      // Si no hay ratings, devuelve 0 o un valor por defecto
+      const promedio =
+        data && data.length > 0 ? parseFloat(data[0].promedio) : 0;
+      return res.json({ success: true, promedio });
+    } catch (error) {
+      console.error("Error al obtener promedio de ratings de usuario:", error);
+      return res.status(500).json({
+        success: false,
+        message: "No se pudo obtener el promedio de ratings",
+      });
+    }
+  }
+
+  // ================== Ratings de Críticos ===================
+  async addRatingCritico(req, res) {
+    try {
+      const usuarioId = await this.resolveUserId(req);
+      const { contenidoId, puntaje } = req.body;
+      const user = req.session.user; // Obtener el usuario de la sesión para verificar el rol
+
+      if (!user || user.tipo !== "CRITICO") {
+        return res
+          .status(403)
+          .json({
+            success: false,
+            message: "Acceso denegado. Solo críticos pueden añadir ratings.",
+          });
+      }
+
+      if (!usuarioId || !contenidoId || puntaje === undefined) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "Datos incompletos para el rating del crítico",
+          });
+      }
+
+      const parsedPuntaje = parseFloat(puntaje);
+      if (isNaN(parsedPuntaje) || parsedPuntaje < 0 || parsedPuntaje > 10) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "El puntaje debe ser un número entre 0 y 10",
+          });
+      }
+
+      await this.repository.createRatingCritico(
+        usuarioId,
+        contenidoId,
+        parsedPuntaje,
+      );
+      return res
+        .status(201)
+        .json({
+          success: true,
+          message: "Rating de crítico agregado/actualizado",
+        });
+    } catch (error) {
+      console.error("Error al agregar/actualizar rating de crítico:", error);
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "No se pudo agregar/actualizar el rating del crítico",
+        });
+    }
+  }
+
+  async getRatingCriticosPromedio(req, res) {
+    try {
+      const { contenidoId } = req.params;
+
+      if (!contenidoId) {
+        return res
+          .status(400)
+          .json({ success: false, message: "ID de contenido requerido" });
+      }
+
+      const data = await this.repository.getRatingCriticosPromedio(contenidoId);
+      const promedio =
+        data && data.length > 0 ? parseFloat(data[0].promedio) : 0;
+      return res.json({ success: true, promedio });
+    } catch (error) {
+      console.error("Error al obtener promedio de ratings de crítico:", error);
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "No se pudo obtener el promedio de ratings del crítico",
+        });
+    }
+  }
 }
