@@ -18,6 +18,13 @@ router.post("/logout", async (req, res) => {
   await pelisBO.logout(req, res);
 });
 
+router.put("/user", authMiddleware, async (req, res) => {
+  await pelisBO.updateUser(req, res);
+});
+
+router.put("/user/password", authMiddleware, async (req, res) => {
+  await pelisBO.updatePassword(req, res);
+});
 router.delete("/user", authMiddleware, async (req, res) => {
   await pelisBO.deleteUser(req, res);
 });

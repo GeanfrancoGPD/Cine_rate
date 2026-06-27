@@ -141,7 +141,7 @@ export default class PelisBO {
           .status(400)
           .json({ success: false, message: "Usuario inválido" });
       }
-      const data = await pelisRepository.deleteUserAccount(usuarioId);
+      const data = await this.repository.deleteUserAccount(usuarioId);
       req.session.destroy(() => {});
       return res.json({ success: true, data });
     } catch (error) {
@@ -151,9 +151,81 @@ export default class PelisBO {
     }
   }
 
+  async updateUser(req, res) {
+    try {
+      const usuarioId = req.body.id ?? this.resolveUserId(req);
+
+      if (!usuarioId) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Usuario inválido" });
+      }
+
+      const { nombre, gmail, password, tipo } = req.body;
+
+      if (!nombre && !gmail && !password && !tipo) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Al menos un campo (nombre, gmail, password o tipo) es requerido",
+        });
+      }
+
+      const updateData = {};
+      if (nombre) updateData.nombre = nombre;
+      if (gmail) updateData.gmail = gmail;
+      if (password) {
+        const hashedPassword = await this.bcrypt.hash(password);
+        updateData.password_hash = hashedPassword;
+      }
+      if (tipo) updateData.tipo = tipo;
+
+      const data = await this.repository.updateUser(usuarioId, updateData);
+      return res.json({ success: true, data });
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ success: false, message: "No se pudo actualizar la cuenta" });
+    }
+  }
+
+  async updatePassword(req, res) {
+    try {
+      const usuarioId = req.body.id ?? this.resolveUserId(req);
+
+      if (!usuarioId) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Usuario inválido" });
+      }
+
+      const { password } = req.body;
+
+      if (!password) {
+        return res.status(400).json({
+          success: false,
+          message: "El campo de contraseña es requerido",
+        });
+      }
+
+      const hashedPassword = await this.bcrypt.hash(password);
+      const data = await this.repository.updatePassword(
+        usuarioId,
+        hashedPassword,
+      );
+
+      return res.json({ success: true, data });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "No se pudo actualizar la contraseña",
+      });
+    }
+  }
+
   async getAllUsers(req, res) {
     try {
-      const data = await pelisRepository.getAllUsers();
+      const data = await this.repository.getAllUsers();
       return res.json({ success: true, data: data ?? [] });
     } catch (error) {
       return res.status(500).json({
@@ -513,31 +585,25 @@ export default class PelisBO {
       const user = req.session.user; // Obtener el usuario de la sesión para verificar el rol
 
       if (!user || user.tipo !== "CRITICO") {
-        return res
-          .status(403)
-          .json({
-            success: false,
-            message: "Acceso denegado. Solo críticos pueden añadir ratings.",
-          });
+        return res.status(403).json({
+          success: false,
+          message: "Acceso denegado. Solo críticos pueden añadir ratings.",
+        });
       }
 
       if (!usuarioId || !contenidoId || puntaje === undefined) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Datos incompletos para el rating del crítico",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Datos incompletos para el rating del crítico",
+        });
       }
 
       const parsedPuntaje = parseFloat(puntaje);
       if (isNaN(parsedPuntaje) || parsedPuntaje < 0 || parsedPuntaje > 10) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "El puntaje debe ser un número entre 0 y 10",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "El puntaje debe ser un número entre 0 y 10",
+        });
       }
 
       await this.repository.createRatingCritico(
@@ -545,20 +611,16 @@ export default class PelisBO {
         contenidoId,
         parsedPuntaje,
       );
-      return res
-        .status(201)
-        .json({
-          success: true,
-          message: "Rating de crítico agregado/actualizado",
-        });
+      return res.status(201).json({
+        success: true,
+        message: "Rating de crítico agregado/actualizado",
+      });
     } catch (error) {
       console.error("Error al agregar/actualizar rating de crítico:", error);
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "No se pudo agregar/actualizar el rating del crítico",
-        });
+      return res.status(500).json({
+        success: false,
+        message: "No se pudo agregar/actualizar el rating del crítico",
+      });
     }
   }
 
@@ -578,12 +640,10 @@ export default class PelisBO {
       return res.json({ success: true, promedio });
     } catch (error) {
       console.error("Error al obtener promedio de ratings de crítico:", error);
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "No se pudo obtener el promedio de ratings del crítico",
-        });
+      return res.status(500).json({
+        success: false,
+        message: "No se pudo obtener el promedio de ratings del crítico",
+      });
     }
   }
 }

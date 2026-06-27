@@ -27,6 +27,20 @@ export default class PelisRepository {
     });
   }
 
+  async updateUser(usuarioId, updateData) {
+    return await this.db.excecuteNameQuery("updateUser", {
+      id: usuarioId,
+      ...updateData,
+    });
+  }
+
+  async updatePassword(usuarioId, newPasswordHash) {
+    return await this.db.excecuteNameQuery("updatePassword", {
+      password_hash: newPasswordHash,
+      id: usuarioId,
+    });
+  }
+
   async getAllUsers() {
     return await this.db.excecuteNameQuery("getAllUsers", {});
   }
