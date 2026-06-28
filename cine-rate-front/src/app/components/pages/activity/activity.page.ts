@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonIcon, IonSearchbar, IonSelect, IonSelectOption, IonItem, IonLabel } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, IonSelect, IonSelectOption, IonItem, IonLabel } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { TopBarComponent } from '../../molecules/top-bar/top-bar.component';
 import { BottomNavComponent } from '../../molecules/bottom-nav/bottom-nav.component';
@@ -16,7 +16,6 @@ import { FormsModule } from '@angular/forms';
     CommonModule,
     IonContent,
     IonIcon,
-    IonSearchbar,
     IonSelect,
     IonSelectOption,
     IonItem,

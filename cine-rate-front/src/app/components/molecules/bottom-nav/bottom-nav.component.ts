@@ -34,6 +34,8 @@ export class BottomNavComponent {
   private syncActiveWithUrl(url: string) {
     if (url.includes('/profile')) {
       this.activeTab = 'profile';
+    } else if (url.includes('/activity')) {
+      this.activeTab = 'activity';
     } else if (url.includes('/home')) {
       this.activeTab = 'home';
     } else {
