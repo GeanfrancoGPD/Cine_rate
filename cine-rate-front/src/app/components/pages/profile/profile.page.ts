@@ -6,9 +6,21 @@ import { TopBarComponent } from '../../molecules/top-bar/top-bar.component';
 import { BottomNavComponent } from '../../molecules/bottom-nav/bottom-nav.component';
 import { ProfileStatsComponent } from '../../molecules/profile-stats/profile-stats.component';
 import { ProfileCommentComponent } from '../../molecules/profile-comment/profile-comment.component';
-import { MOCK_USER_PROFILE, UserProfile, UserComment } from '../../../data/mock-data';
+import {
+  MOCK_USER_PROFILE,
+  UserProfile,
+  UserComment,
+} from '../../../data/mock-data';
 import { FormsModule } from '@angular/forms';
+import { addIcons } from 'ionicons';
+import {
+  personCircleOutline,
+  logOutOutline,
+  createOutline,
+  trashOutline,
+} from 'ionicons/icons';
 
+addIcons({ personCircleOutline, logOutOutline, createOutline, trashOutline });
 @Component({
   selector: 'app-profile',
   standalone: true,
@@ -21,10 +33,10 @@ import { FormsModule } from '@angular/forms';
     TopBarComponent,
     BottomNavComponent,
     ProfileStatsComponent,
-    ProfileCommentComponent
+    ProfileCommentComponent,
   ],
   templateUrl: './profile.page.html',
-  styleUrls: ['./profile.page.scss']
+  styleUrls: ['./profile.page.scss'],
 })
 export class ProfilePage implements OnInit {
   user!: UserProfile;
@@ -73,7 +85,7 @@ export class ProfilePage implements OnInit {
   }
 
   deleteComment(commentId: number) {
-    this.user.comments = this.user.comments.filter(c => c.id !== commentId);
+    this.user.comments = this.user.comments.filter((c) => c.id !== commentId);
     if (this.editingCommentId === commentId) {
       this.cancelEditingComment();
     }
@@ -89,7 +101,9 @@ export class ProfilePage implements OnInit {
   }
 
   confirmDelete() {
-    const ok = window.confirm('Eliminar este perfil será permanente. ¿Deseas continuar?');
+    const ok = window.confirm(
+      'Eliminar este perfil será permanente. ¿Deseas continuar?',
+    );
     if (ok) {
       // Limpiar los datos del mock y volver al login
       MOCK_USER_PROFILE.name = '';

@@ -10,6 +10,6 @@ bootstrapApplication(AppComponent, {
       mode: 'md',
       innerHTMLTemplatesEnabled: true,
     }),
-    provideRouter(routes)
-  ]
+    provideRouter(routes),
+  ],
 });
