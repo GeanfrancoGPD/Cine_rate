@@ -1,0 +1,60 @@
+<ion-content>
+  <div class="home-bg"></div>
+
+  <app-top-bar (onSearch)="onSearch($event)"></app-top-bar>
+
+  <div class="content">
+    <div class="genres-section">
+      <app-genre-chip
+        *ngFor="let genre of genres"
+        [label]="genre"
+        [active]="activeGenre === genre"
+        (onClick)="selectGenre(genre)"
+      ></app-genre-chip>
+    </div>
+
+    <div class="filters-row">
+      <ion-searchbar
+        placeholder="Buscar por título..."
+        [(ngModel)]="searchTerm"
+        (ionInput)="onSearch($event.detail.value)"
+      ></ion-searchbar>
+
+      <div class="filter-controls">
+        <ion-item lines="none" class="compact-item">
+          <ion-label class="compact-label">Min. puntuación</ion-label>
+          <ion-select interface="popover" [(ngModel)]="minRating" (ionChange)="setMinRating($event.detail.value)">
+            <ion-select-option [value]="0">Cualquiera</ion-select-option>
+            <ion-select-option [value]="5">>= 5</ion-select-option>
+            <ion-select-option [value]="6">>= 6</ion-select-option>
+            <ion-select-option [value]="7">>= 7</ion-select-option>
+            <ion-select-option [value]="8">>= 8</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item lines="none" class="compact-item">
+          <ion-label class="compact-label">Ordenar por</ion-label>
+          <ion-select interface="popover" [(ngModel)]="sortBy" (ionChange)="setSort($event.detail.value)">
+            <ion-select-option value="rating">Puntuación</ion-select-option>
+            <ion-select-option value="date">Fecha</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </div>
+    </div>
+
+    <h2 class="section-title">Películas vistas</h2>
+    <div class="movie-list">
+      <app-movie-card
+        *ngFor="let movie of displayedMovies"
+        [movie]="movie"
+        (clickCard)="goToMovieDetail($event)"
+      ></app-movie-card>
+    </div>
+
+    <p *ngIf="displayedMovies.length === 0" class="empty-message">
+      No has visto ninguna película aún.
+    </p>
+  </div>
+
+  <app-bottom-nav (tabChange)="onTabChange($event)"></app-bottom-nav>
+</ion-content>

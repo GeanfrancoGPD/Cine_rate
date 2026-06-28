@@ -1,0 +1,24 @@
+.rating-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: #94a3b8;
+
+  .star {
+    color: #94a3b8;
+    font-size: 1em;
+  }
+
+  .star.filled,
+  .star.half {
+    color: #fbbf24;
+  }
+
+  .rating-text {
+    margin-left: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8em;
+    font-weight: 600;
+    color: #dae2fd;
+  }
+}

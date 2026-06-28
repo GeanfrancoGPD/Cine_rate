@@ -1,0 +1,9 @@
+<div class="nav-item" [class.active]="active" (click)="onClick.emit()">
+  <div class="nav-icon-wrapper">
+    <ion-icon [name]="icon" class="nav-icon"></ion-icon>
+  </div>
+  <div class="nav-label-wrapper">
+    <span class="nav-label">{{ label }}</span>
+    <div class="nav-bar" *ngIf="active"></div>
+  </div>
+</div>

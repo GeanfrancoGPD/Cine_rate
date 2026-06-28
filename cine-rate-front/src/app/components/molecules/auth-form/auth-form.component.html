@@ -1,73 +1,59 @@
 <div class="form-container">
   <ng-container *ngIf="mode === 'login'">
-    <div class="input-group">
-      <label class="input-label">Correo electrónico</label>
-      <div class="input-wrapper">
-        <ion-icon name="mail-outline" class="input-icon"></ion-icon>
-        <ion-input
-          [(ngModel)]="email"
-          type="email"
-          placeholder="ejemplo@cine.com"
-          class="custom-input"
-        ></ion-input>
-      </div>
-    </div>
-    <div class="input-group">
-      <label class="input-label">Contraseña</label>
-      <div class="input-wrapper">
-        <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
-        <ion-input
-          [(ngModel)]="password"
-          type="password"
-          placeholder="••••••••"
-          class="custom-input"
-        ></ion-input>
-      </div>
-    </div>
-    <button class="glow-button" (click)="onSubmit()">
-      Iniciar Sesión <ion-icon name="arrow-forward-outline"></ion-icon>
-    </button>
+    <app-input
+      label="Correo electrónico"
+      type="email"
+      placeholder="ejemplo@cine.com"
+      iconName="mail-outline"
+      [(ngModel)]="email"
+    ></app-input>
+    
+    <app-input
+      label="Contraseña"
+      type="password"
+      placeholder="••••••••"
+      iconName="lock-closed-outline"
+      [showToggle]="true"
+      [(ngModel)]="password"
+    ></app-input>
+    
+    <app-button
+      label="Iniciar Sesión"
+      iconEnd="arrow-forward-outline"
+      (onClick)="onSubmit()"
+    ></app-button>
   </ng-container>
 
   <ng-container *ngIf="mode === 'register'">
-    <div class="input-group">
-      <label class="input-label">Nombre completo</label>
-      <div class="input-wrapper">
-        <ion-icon name="person-outline" class="input-icon"></ion-icon>
-        <ion-input
-          [(ngModel)]="name"
-          type="text"
-          placeholder="Tu nombre"
-          class="custom-input"
-        ></ion-input>
-      </div>
-    </div>
-    <div class="input-group">
-      <label class="input-label">Correo electrónico</label>
-      <div class="input-wrapper">
-        <ion-icon name="mail-outline" class="input-icon"></ion-icon>
-        <ion-input
-          [(ngModel)]="email"
-          type="email"
-          placeholder="ejemplo@cine.com"
-          class="custom-input"
-        ></ion-input>
-      </div>
-    </div>
-    <div class="input-group">
-      <label class="input-label">Contraseña</label>
-      <div class="input-wrapper">
-        <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
-        <ion-input
-          [(ngModel)]="password"
-          type="password"
-          placeholder="Mínimo 8 caracteres"
-          class="custom-input"
-        ></ion-input>
-      </div>
-    </div>
-    <button class="glow-button" (click)="onSubmit()">
-      Crear Cuenta <ion-icon name="person-add-outline"></ion-icon>
-    </button>
+    <app-input
+      label="Nombre completo"
+      type="text"
+      placeholder="Tu nombre"
+      iconName="person-outline"
+      [(ngModel)]="name"
+    ></app-input>
+    
+    <app-input
+      label="Correo electrónico"
+      type="email"
+      placeholder="ejemplo@cine.com"
+      iconName="mail-outline"
+      [(ngModel)]="email"
+    ></app-input>
+    
+    <app-input
+      label="Contraseña"
+      type="password"
+      placeholder="Mínimo 8 caracteres"
+      iconName="lock-closed-outline"
+      [showToggle]="true"
+      [(ngModel)]="password"
+    ></app-input>
+    
+    <app-button
+      label="Crear Cuenta"
+      iconEnd="person-add-outline"
+      (onClick)="onSubmit()"
+    ></app-button>
   </ng-container>
 </div>

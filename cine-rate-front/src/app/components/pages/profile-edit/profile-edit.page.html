@@ -1,0 +1,25 @@
+<ion-content>
+  <div class="edit-container">
+    <h2>Editar Perfil</h2>
+
+    <div class="field">
+      <label>Nombre</label>
+      <ion-input [(ngModel)]="user.name" placeholder="Nombre"></ion-input>
+    </div>
+
+    <div class="field">
+      <label>Email</label>
+      <ion-input [(ngModel)]="user.email" placeholder="Email"></ion-input>
+    </div>
+
+    <div class="field">
+      <label>Contraseña</label>
+      <ion-input type="password" [(ngModel)]="user.password" placeholder="Contraseña"></ion-input>
+    </div>
+
+    <div class="actions">
+      <ion-button fill="clear" (click)="cancel()">Cancelar</ion-button>
+      <ion-button (click)="save()">Guardar</ion-button>
+    </div>
+  </div>
+</ion-content>

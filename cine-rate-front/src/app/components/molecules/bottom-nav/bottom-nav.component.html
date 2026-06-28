@@ -1,0 +1,20 @@
+<div class="bottom-nav">
+  <app-nav-item
+    icon="home-outline"
+    label="Home"
+    [active]="activeTab === 'home'"
+    (onClick)="tabChange.emit('home'); activeTab = 'home'"
+  ></app-nav-item>
+  <app-nav-item
+    icon="compass-outline"
+    label="Activity"
+    [active]="activeTab === 'activity'"
+    (onClick)="tabChange.emit('activity'); activeTab = 'activity'"
+  ></app-nav-item>
+  <app-nav-item
+    icon="person-outline"
+    label="Profile"
+    [active]="activeTab === 'profile'"
+    (onClick)="tabChange.emit('profile'); activeTab = 'profile'"
+  ></app-nav-item>
+</div>

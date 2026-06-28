@@ -1,0 +1,78 @@
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  background: rgba(6, 14, 32, 0.82);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(221, 183, 255, 0.1);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.logo-icon {
+  font-size: 28px;
+  color: #ddb7ff;
+  --ionicon-stroke-width: 16px;
+}
+
+.logo-text {
+  font-family: 'Sora', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ddb7ff, #8b5cf6);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.profile-icon {
+  font-size: 28px;
+  color: #cbd5e1;
+  transition: all 0.3s ease;
+  padding: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@media (pointer: fine) {
+  .logo-wrapper { cursor: pointer; }
+  .profile-icon { cursor: pointer; }
+  .profile-icon:hover {
+    color: #ffffff;
+    background: rgba(221, 183, 255, 0.12);
+  }
+}
+
+.top-bar app-search-bar {
+  flex: 1 1 auto;
+}
+
+@media (max-width: 480px) {
+  .top-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 16px;
+  }
+  
+  .logo-wrapper {
+    flex: 0 0 auto;
+  }
+  
+  .top-bar app-search-bar {
+    order: 3;
+    flex: 1 1 100%;
+  }
+}

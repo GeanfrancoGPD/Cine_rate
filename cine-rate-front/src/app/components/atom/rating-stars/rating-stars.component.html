@@ -1,0 +1,20 @@
+<div class="rating-stars" [style.font-size]="size">
+  <ng-container *ngFor="let star of stars; let i = index">
+    <ion-icon
+      *ngIf="i < fullStars"
+      name="star"
+      class="star filled"
+    ></ion-icon>
+    <ion-icon
+      *ngIf="i === fullStars && hasHalfStar"
+      name="star-half"
+      class="star half"
+    ></ion-icon>
+    <ion-icon
+      *ngIf="i >= fullStars + (hasHalfStar ? 1 : 0)"
+      name="star-outline"
+      class="star empty"
+    ></ion-icon>
+  </ng-container>
+  <span class="rating-text">{{ rating }}</span>
+</div>

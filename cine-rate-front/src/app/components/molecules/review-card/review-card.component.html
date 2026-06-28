@@ -1,0 +1,14 @@
+<div class="review-card" [ngClass]="{ 'user-review': review.reviewerType === 'user', 'critic-review': review.reviewerType === 'critic' }">
+  <div class="review-header">
+    <div class="review-author">
+      <ion-icon name="person-circle-outline" class="avatar-icon"></ion-icon>
+      <div class="author-info">
+        <span class="author-name">{{ review.author }}</span>
+        <span class="reviewer-type">{{ review.reviewerType === 'critic' ? 'CRÍTICO' : 'USUARIO' }}</span>
+      </div>
+    </div>
+    <app-rating-stars [rating]="review.rating" size="16px"></app-rating-stars>
+  </div>
+  <p class="review-comment">{{ review.comment }}</p>
+  <span class="review-date">{{ review.date }}</span>
+</div>
