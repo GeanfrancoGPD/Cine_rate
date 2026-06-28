@@ -39,6 +39,10 @@ router.get("/auth-check", authMiddleware, async (req, res) => {
 
 // ================== Contenido ===================
 
+router.get("/generos", async (req, res) => {
+  await pelisBO.getGenres(req, res);
+});
+
 router.get("/popular-movies", async (req, res) => {
   await pelisBO.getPopularMovies(req, res);
 });

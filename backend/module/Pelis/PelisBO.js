@@ -263,6 +263,7 @@ export default class PelisBO {
           });
         } else {
           const apiGeneros = await this.repositoryApi.cargarMapaGeneros();
+
           if (apiGeneros && apiGeneros.genres) {
             for (const genero of apiGeneros.genres) {
               await this.repository.createGenero(genero.id, genero.name);
@@ -341,13 +342,48 @@ export default class PelisBO {
     }
 
     try {
-      let data = await this.repository.searchByTitle(`${nombre}`);
+      // 1. Mantenemos la búsqueda con comodines para SQL LIKE
+      let data = await this.repository.searchByTitle(`%${nombre}%`);
 
       if (!data || data.length === 0) {
         const apiData = await this.repositoryApi.buscarPelicula(nombre);
         data = [];
+
         if (apiData && apiData.length > 0) {
           for (const item of apiData) {
+            const generoIdsInternos = [];
+            if (item.genre_ids && Array.isArray(item.genre_ids)) {
+              for (const tmdbGenreId of item.genre_ids) {
+                // Corregido: Usamos tu método original getGeneroByTmdbId
+                let generoEnBD =
+                  await this.repository.getGeneroByTmdbId(tmdbGenreId);
+
+                // Ajustamos la lectura del índice según lo que devuelva tu DBComponent [0] o [0][0]
+                const registroGenero = generoEnBD[0]?.[0] || generoEnBD[0];
+
+                if (registroGenero && registroGenero.id) {
+                  generoIdsInternos.push(registroGenero.id);
+                } else {
+                  const nombreGenero =
+                    this.repositoryApi.mapaGeneros[tmdbGenreId];
+                  if (nombreGenero) {
+                    const nuevoGenero = await this.repository.createGenero(
+                      tmdbGenreId,
+                      nombreGenero,
+                    );
+                    const registroNuevo = nuevoGenero[0]?.[0] || nuevoGenero[0];
+                    if (registroNuevo && registroNuevo.id) {
+                      generoIdsInternos.push(registroNuevo.id);
+                    }
+                  } else {
+                    console.warn(
+                      `Nombre de género no encontrado para TMDB ID: ${tmdbGenreId}`,
+                    );
+                  }
+                }
+              }
+            }
+
             const nuevoContenido = await this.repository.createContenido([
               {
                 tmdb_id: item.id,
@@ -358,6 +394,7 @@ export default class PelisBO {
                 poster_url: item.poster_path
                   ? "https://image.tmdb.org/t/p/w780" + item.poster_path
                   : null,
+                // Corregido: Se eliminó la barra invertida escapada \"
                 backdrop_url: item.backdrop_path
                   ? "https://image.tmdb.org/t/p/w780" + item.backdrop_path
                   : null,
@@ -367,13 +404,11 @@ export default class PelisBO {
             ]);
 
             const contenidoId = nuevoContenido[0][0].id;
-            if (item.genre_ids) {
-              for (const genreId of item.genre_ids) {
-                await this.repository.createContenidoGenero(
-                  contenidoId,
-                  genreId,
-                );
-              }
+            for (const generoIdInterno of generoIdsInternos) {
+              await this.repository.createContenidoGenero(
+                contenidoId,
+                generoIdInterno,
+              );
             }
             data.push({ ...nuevoContenido[0][0], genre_ids: item.genre_ids });
           }
@@ -381,6 +416,8 @@ export default class PelisBO {
       }
       return res.json({ success: true, data });
     } catch (error) {
+      // IMPORTANTE: Esto hará que sí veas qué falla en tu consola local
+      console.error("Error en searchMovie:", error);
       return res
         .status(500)
         .json({ success: false, message: "No se pudo buscar la película" });

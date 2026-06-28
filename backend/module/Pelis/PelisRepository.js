@@ -147,4 +147,10 @@ export default class PelisRepository {
       contenido_id,
     });
   }
+
+  async getGeneroByTmdbId(tmdb_genero_id) {
+    return await this.db.excecuteNameQuery("generoByTmdbGeneroId", {
+      tmdb_genero_id,
+    });
+  }
 }
