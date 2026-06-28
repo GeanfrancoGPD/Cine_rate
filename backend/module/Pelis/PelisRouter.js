@@ -93,14 +93,19 @@ router.get("/ratings/:contenidoId/average", async (req, res) => {
   await pelisBO.getRatingUsuariosPromedio(req, res);
 });
 
+// ================== Ratings de Críticos ===================
 router.post("/critics-ratings", authMiddleware, async (req, res) => {
   await pelisBO.addRatingCritico(req, res);
 });
 
-// ================== Ratings de Críticos ===================
-router.get("/critics-ratings/:contenidoId/average", async (req, res) => {
+router.get("/critics-ratings/:contenidoId", async (req, res) => {
   // El promedio de ratings de crítico puede ser público
   await pelisBO.getRatingCriticosPromedio(req, res);
+});
+
+// ================== Filtros y ordenamientos ===================
+router.get("/movies/filter", async (req, res) => {
+  await pelisBO.filterMovies(req, res);
 });
 
 export default router;
