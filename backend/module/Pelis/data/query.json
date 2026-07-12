@@ -288,5 +288,12 @@
       "contenido_id": "number"
     },
     "orderArray": ["usuario_id", "contenido_id"]
+  },
+  "generoByTmdbGeneroId": {
+    "query": "SELECT id FROM generos WHERE tmdb_genero_id = $1",
+    "structure_params": {
+      "tmdb_genero_id": "number"
+    },
+    "orderArray": ["tmdb_genero_id"]
   }
 }
