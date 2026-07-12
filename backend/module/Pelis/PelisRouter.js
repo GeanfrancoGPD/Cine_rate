@@ -39,6 +39,10 @@ router.get("/auth-check", authMiddleware, async (req, res) => {
 
 // ================== Contenido ===================
 
+router.get("/generos", async (req, res) => {
+  await pelisBO.getGenres(req, res);
+});
+
 router.get("/popular-movies", async (req, res) => {
   await pelisBO.getPopularMovies(req, res);
 });
@@ -84,19 +88,24 @@ router.post("/ratings", authMiddleware, async (req, res) => {
   await pelisBO.addRatingUsuario(req, res);
 });
 
-router.get("/ratings/:contenidoId/average", async (req, res) => {
+router.get("/ratings/:contenidoId", async (req, res) => {
   // El promedio de ratings puede ser público
   await pelisBO.getRatingUsuariosPromedio(req, res);
 });
 
+// ================== Ratings de Críticos ===================
 router.post("/critics-ratings", authMiddleware, async (req, res) => {
   await pelisBO.addRatingCritico(req, res);
 });
 
-// ================== Ratings de Críticos ===================
-router.get("/critics-ratings/:contenidoId/average", async (req, res) => {
+router.get("/critics-ratings/:contenidoId", async (req, res) => {
   // El promedio de ratings de crítico puede ser público
   await pelisBO.getRatingCriticosPromedio(req, res);
+});
+
+// ================== Filtros y ordenamientos ===================
+router.get("/movies/filter", async (req, res) => {
+  await pelisBO.filterMovies(req, res);
 });
 
 export default router;

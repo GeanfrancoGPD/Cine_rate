@@ -1,5 +1,6 @@
 data/DBConfig.json
 node_modules/
-
+agents.md
+.continueignore
 .env
 
