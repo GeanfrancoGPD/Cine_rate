@@ -31,16 +31,17 @@ export default class PelisBO {
 
   // ==================== AUTENTICACIÓN ====================
   async login(req, res) {
-    const { gmail, password } = req.body;
+    const { gmail, email, password } = req.body;
+    const normalizedEmail = gmail ?? email;
 
-    if (!gmail || !password) {
+    if (!normalizedEmail || !password) {
       return res.status(400).json({
         success: false,
         message: "Correo electrónico y contraseña son requeridos",
       });
     }
 
-    const emailValidation = await this.validator.validateEmail(gmail);
+    const emailValidation = await this.validator.validateEmail(normalizedEmail);
     if (!emailValidation.success) {
       return res.status(400).json({
         success: false,
@@ -56,7 +57,7 @@ export default class PelisBO {
       });
     }
 
-    const user = await this.repository.getUserByEmail(gmail);
+    const user = await this.repository.getUserByEmail(normalizedEmail);
 
     if (!user.length) {
       return res.status(401).json({
@@ -78,16 +79,19 @@ export default class PelisBO {
   }
 
   async register(req, res) {
-    const { nombre, gmail, password } = req.body;
+    const { nombre, name, gmail, email, password } = req.body;
+    const normalizedName = (nombre ?? name ?? "").trim();
+    const normalizedEmail = (gmail ?? email ?? "").trim();
+    const normalizedPassword = password ?? "";
 
-    if (!nombre || !gmail || !password) {
+    if (!normalizedName || !normalizedEmail || !normalizedPassword) {
       return res.status(400).json({
         success: false,
         message: "Todos los datos son requeridos",
       });
     }
 
-    const nameValidation = await this.validator.validateUsername(nombre);
+    const nameValidation = await this.validator.validateUsername(normalizedName);
     if (!nameValidation.success) {
       return res.status(400).json({
         success: false,
@@ -95,7 +99,7 @@ export default class PelisBO {
       });
     }
 
-    const emailValidation = await this.validator.validateEmail(gmail);
+    const emailValidation = await this.validator.validateEmail(normalizedEmail);
     if (!emailValidation.success) {
       return res.status(400).json({
         success: false,
@@ -103,7 +107,7 @@ export default class PelisBO {
       });
     }
 
-    const passwordValidation = await this.validator.validatePassword(password);
+    const passwordValidation = await this.validator.validatePassword(normalizedPassword);
     if (!passwordValidation.success) {
       return res.status(400).json({
         success: false,
@@ -111,7 +115,7 @@ export default class PelisBO {
       });
     }
 
-    const existingUser = await this.repository.getUserByEmail(gmail);
+    const existingUser = await this.repository.getUserByEmail(normalizedEmail);
     if (existingUser.length > 0) {
       return res.status(409).json({
         success: false,
@@ -120,7 +124,7 @@ export default class PelisBO {
     }
 
     const hashedPassword = await this.bcrypt.hash(password);
-    await this.repository.createUser(nombre, gmail, hashedPassword);
+    await this.repository.createUser(normalizedName, normalizedEmail, hashedPassword);
 
     return res.status(201).json({
       success: true,

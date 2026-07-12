@@ -1,0 +1,8 @@
+<div class="top-bar">
+  <div class="logo-wrapper" (click)="router.navigate(['/home'])">
+    <ion-icon name="film-outline" class="logo-icon"></ion-icon>
+    <span class="logo-text">CineRate</span>
+  </div>
+  <app-search-bar *ngIf="!router.url.includes('/profile')" (onSearch)="onSearch.emit($event)"></app-search-bar>
+  <ion-icon name="person-circle-outline" class="profile-icon" (click)="goToProfile()"></ion-icon>
+</div>

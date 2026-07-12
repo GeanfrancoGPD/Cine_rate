@@ -1,2 +1,19 @@
-// For information on how to create your own theme, please refer to:
-// https://ionicframework.com/docs/theming/
+:root {
+  --ion-font-family: 'Inter', sans-serif;
+  --ion-font-family-heading: 'Sora', sans-serif;
+  --ion-color-primary: #ddb7ff;
+  --ion-color-primary-rgb: 221, 183, 255;
+  --ion-color-secondary: #60a5fa;
+  --ion-color-tertiary: #8b5cf6;
+  --ion-color-success: #34d399;
+  --ion-color-warning: #fbbf24;
+  --ion-color-danger: #fb7185;
+  --ion-color-dark: #0b1326;
+  --ion-color-medium: #94a3b8;
+  --ion-color-light: #f8fafc;
+  --ion-text-color: #e2e8f0;
+  --ion-background-color: #090d1f;
+  --ion-background-rgb: 9, 13, 31;
+  --ion-toolbar-background: rgba(11, 19, 38, 0.88);
+  --ion-toolbar-border-color: rgba(221, 183, 255, 0.08);
+}

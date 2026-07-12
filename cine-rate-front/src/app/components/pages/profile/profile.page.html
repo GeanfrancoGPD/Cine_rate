@@ -1,0 +1,66 @@
+<ion-content>
+  <div class="profile-bg"></div>
+  <app-top-bar (onSearch)="onSearch($event)"></app-top-bar>
+
+  <div class="content">
+    <div class="profile-header">
+      <div class="avatar-section">
+        <ion-icon name="person-circle-outline" class="avatar-icon"></ion-icon>
+        <div class="user-info">
+          <h2 class="user-name">{{ user.name }}</h2>
+          <span class="user-email">{{ user.email }}</span>
+        </div>
+      </div>
+      <div class="action-buttons">
+        <div class="primary-actions">
+          <ion-button fill="clear" class="action-btn" (click)="logout()">
+            <ion-icon name="log-out-outline"></ion-icon>
+            <span>Salir</span>
+          </ion-button>
+          <ion-button fill="clear" class="action-btn" (click)="editProfile()">
+            <ion-icon name="create-outline"></ion-icon>
+            <span>Editar</span>
+          </ion-button>
+        </div>
+        <div class="danger-actions">
+          <ion-button fill="clear" class="action-btn delete" (click)="confirmDelete()">
+            <ion-icon name="trash-outline"></ion-icon>
+            <span>Eliminar</span>
+          </ion-button>
+        </div>
+      </div>
+    </div>
+
+    <app-profile-stats
+      [media]="user.media"
+      [likes]="user.likes"
+    ></app-profile-stats>
+
+    <div class="comments-section">
+      <h3>Mis Comentarios</h3>
+      <div class="comments-list">
+        <div class="profile-comment-wrapper" *ngFor="let comment of user.comments">
+          <app-profile-comment [comment]="comment"></app-profile-comment>
+          <div class="comment-actions">
+            <ion-button fill="clear" size="small" (click)="startEditingComment(comment)">Editar</ion-button>
+            <ion-button fill="clear" size="small" color="danger" (click)="deleteComment(comment.id)">Eliminar</ion-button>
+          </div>
+
+          <div class="edit-box" *ngIf="editingCommentId === comment.id">
+            <textarea
+              [(ngModel)]="editingText"
+              maxlength="200"
+              placeholder="Editar tu comentario..."
+            ></textarea>
+            <div class="edit-actions">
+              <ion-button fill="solid" size="small" color="success" (click)="saveEditedComment(comment)">Guardar</ion-button>
+              <ion-button fill="clear" size="small" (click)="cancelEditingComment()">Cancelar</ion-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <app-bottom-nav (tabChange)="onTabChange($event)"></app-bottom-nav>
+</ion-content>

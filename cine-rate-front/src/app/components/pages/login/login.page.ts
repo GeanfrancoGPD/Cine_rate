@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { IonContent, ToastController } from '@ionic/angular/standalone';
-import { addIcons } from 'ionicons';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { LogoComponent } from '../../atom/logo/logo.component';
 import { ModeSelectorComponent } from '../../molecules/mode-selector/mode-selector.component';
@@ -24,7 +24,10 @@ import { TermsFooterComponent } from '../../molecules/terms-footer/terms-footer.
 export class LoginPage {
   mode: 'login' | 'register' = 'login';
 
-  constructor(private toastCtrl: ToastController) {}
+  constructor(
+    private toastCtrl: ToastController,
+    private router: Router
+  ) {}
 
   onModeChange(newMode: 'login' | 'register') {
     this.mode = newMode;
@@ -32,24 +35,29 @@ export class LoginPage {
 
   async handleSubmit(credentials: any) {
     if (this.mode === 'login') {
-      // Siempre muestra éxito (demo)
       const toast = await this.toastCtrl.create({
         message: '✅ ¡Bienvenido a CineRate!',
-        duration: 2000,
+        duration: 1500,
         color: 'success',
         position: 'bottom',
       });
       await toast.present();
+
+      setTimeout(() => {
+        this.router.navigateByUrl('/home');
+      }, 1600);
     } else {
-      // Registro exitoso
       const toast = await this.toastCtrl.create({
         message: `🎉 ¡Cuenta creada exitosamente!`,
-        duration: 2500,
+        duration: 1500,
         color: 'primary',
         position: 'bottom',
       });
       await toast.present();
-      this.mode = 'login';
+      
+      setTimeout(() => {
+        this.mode = 'login';
+      }, 1500);
     }
   }
 

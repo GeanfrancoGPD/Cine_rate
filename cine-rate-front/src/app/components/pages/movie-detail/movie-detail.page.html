@@ -1,0 +1,138 @@
+<ion-content>
+  <div class="detail-bg"></div>
+
+  <div class="detail-header">
+    <ion-button fill="clear" (click)="goBack()" class="back-btn">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </ion-button>
+    <span class="header-title">Detalle</span>
+    <div style="width: 40px;"></div>
+  </div>
+
+  <div class="content" *ngIf="movie">
+    <div class="movie-top">
+      <ng-container *ngIf="movie.poster; else posterPlaceholder">
+        <div class="poster" [style.background-image]="'url(' + movie.poster + ')'"> </div>
+      </ng-container>
+      <ng-template #posterPlaceholder>
+        <div class="poster placeholder">
+          <ion-icon name="film-outline"></ion-icon>
+        </div>
+      </ng-template>
+
+      <div class="movie-info">
+        <h1 class="movie-title">{{ movie.title }}</h1>
+        <div class="movie-meta">
+          <span class="movie-date">{{ movie.releaseDate }}</span>
+          <span class="movie-genre">{{ movie.genre }}</span>
+        </div>
+        <div class="rating-row">
+          <div class="global-score-label">Puntaje global</div>
+          <app-rating-stars [rating]="globalRating ?? movie.rating" size="24px"></app-rating-stars>
+        </div>
+        <div class="rating-legend">
+          <div class="legend-item user-legend">
+            <span class="legend-dot"></span>
+            <span>Usuarios: {{ userAverageRating !== null ? (userAverageRating | number:'1.1-1') : 'N/A' }}</span>
+          </div>
+          <div class="legend-item critic-legend">
+            <span class="legend-dot"></span>
+            <span>Críticos: {{ criticAverageRating !== null ? (criticAverageRating | number:'1.1-1') : 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="movie-actions">
+          <ion-button fill="outline" size="small" (click)="toggleWatchRating()">
+            Vista
+          </ion-button>
+          <span *ngIf="movie.userRating" class="user-rating-text">Tu puntuación: {{ movie.userRating }}/5</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="synopsis-section">
+      <h3>Sinopsis</h3>
+      <p>{{ movie.synopsis || 'Sin sinopsis disponible.' }}</p>
+    </div>
+    <div class="watch-rating-panel" *ngIf="showWatchRating">
+      <div class="watch-rating-title">¿Cómo la calificarías?</div>
+      <div class="rating-selector rating-circles">
+        <button
+          type="button"
+          *ngFor="let value of [1,2,3,4,5]"
+          class="rating-circle"
+          [class.selected]="value <= watchedRating"
+          (click)="watchedRating = value"
+        >
+          {{ value }}
+        </button>
+      </div>
+      <ion-button expand="block" size="small" color="success" (click)="saveWatchRating()">
+        Guardar puntuación
+      </ion-button>
+    </div>
+
+    <div class="reviews-section">
+      <h3>Reseñas <span class="review-count">({{ movie.reviews?.length || 0 }} respuestas)</span></h3>
+      <div *ngIf="movie.reviews && movie.reviews.length > 0">
+        <div
+          *ngFor="let review of movie.reviews"
+          class="review-wrapper"
+          [ngClass]="{ 'user-review': review.reviewerType === 'user', 'critic-review': review.reviewerType === 'critic' }"
+        >
+          <app-review-card [review]="review"></app-review-card>
+          <div class="review-owner-actions" *ngIf="isReviewOwner(review)">
+            <ion-button fill="clear" size="small" (click)="startEditing(review)">Editar</ion-button>
+            <ion-button fill="clear" size="small" color="danger" (click)="deleteReview(review.id)">Eliminar</ion-button>
+          </div>
+
+          <div class="edit-box" *ngIf="editingReviewId === review.id">
+            <textarea
+              [(ngModel)]="editingText"
+              maxlength="200"
+              placeholder="Editar tu reseña..."
+            ></textarea>
+            <div class="edit-rating-row">
+              <span>Tu puntuación:</span>
+              <ion-icon
+                *ngFor="let star of [1,2,3,4,5]"
+                [name]="star <= editingRating ? 'star' : 'star-outline'"
+                class="select-star"
+                (click)="editingRating = star"
+              ></ion-icon>
+            </div>
+            <div class="edit-actions">
+              <ion-button fill="solid" size="small" color="success" (click)="saveEditedReview(review)">Guardar</ion-button>
+              <ion-button fill="clear" size="small" (click)="cancelEditing()">Cancelar</ion-button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p *ngIf="!movie.reviews || movie.reviews.length === 0" class="no-reviews">
+        Aún no hay reseñas. ¡Sé el primero!
+      </p>
+    </div>
+
+    <div class="review-form">
+      <h4>¿Qué te pareció la película?</h4>
+      <div class="review-input">
+        <textarea [(ngModel)]="reviewText" maxlength="200" placeholder="Escribe tu reseña aquí..."></textarea>
+        <div class="char-row">
+          <span class="char-count">{{ reviewText?.length || 0 }} / 200</span>
+        </div>
+      </div>
+      <div class="rating-selector">
+        <ion-icon
+          *ngFor="let star of [1,2,3,4,5]"
+          [name]="star <= selectedRating ? 'star' : 'star-outline'"
+          class="select-star"
+          (click)="selectedRating = star"
+        ></ion-icon>
+      </div>
+      <ion-button expand="block" class="submit-btn" (click)="submitReview()">
+        Publicar Reseña
+      </ion-button>
+    </div>
+  </div>
+
+  <app-bottom-nav (tabChange)="onTabChange($event)"></app-bottom-nav>
+</ion-content>
