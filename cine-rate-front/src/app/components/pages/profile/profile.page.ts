@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { lastValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import UserActivityService from '../../../services/user-activity.service';
 import { TopBarComponent } from '../../molecules/top-bar/top-bar.component';
 import { BottomNavComponent } from '../../molecules/bottom-nav/bottom-nav.component';
 import { ProfileStatsComponent } from '../../molecules/profile-stats/profile-stats.component';
@@ -47,7 +48,7 @@ export class ProfilePage implements OnInit {
     password: '',
     avatar: '',
     media: 0,
-    likes: 0,
+    vistas: 0,
     subdivisions: 0,
     comments: [],
   };
@@ -59,6 +60,7 @@ export class ProfilePage implements OnInit {
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     private readonly http: HttpClient,
+    private readonly userActivity: UserActivityService,
   ) {}
 
   ngOnInit() {
@@ -74,22 +76,30 @@ export class ProfilePage implements OnInit {
       );
 
       if (response?.success && response?.user) {
+        const stats = this.userActivity.getStats();
         this.user = {
           name: response.user.nombre || response.user.email || 'Usuario',
           email: response.user.email || '',
           password: '',
           avatar: '',
-          media: 0,
-          likes: 0,
+          media: stats.media,
+          vistas: stats.vistas,
           subdivisions: 0,
           comments: [],
         };
+        this.syncStats();
       } else {
         this.router.navigate(['/login']);
       }
     } catch (error) {
       this.router.navigate(['/login']);
     }
+  }
+
+  private syncStats() {
+    const stats = this.userActivity.getStats();
+    this.user.media = stats.media;
+    this.user.vistas = stats.vistas;
   }
 
   onSearch(term: string) {
@@ -148,11 +158,24 @@ export class ProfilePage implements OnInit {
     this.router.navigate(['/login']);
   }
 
-  confirmDelete() {
+  async confirmDelete() {
     const ok = window.confirm(
       'Eliminar este perfil será permanente. ¿Deseas continuar?',
     );
     if (ok) {
+      try {
+        const response: any = await lastValueFrom(
+          this.http.delete(`${environment.apiUrl}/user`, { withCredentials: true })
+        );
+
+        if (!response?.success) {
+          throw new Error(response?.message || 'No se pudo eliminar la cuenta.');
+        }
+      } catch (error) {
+        alert('No se pudo eliminar la cuenta.');
+        return;
+      }
+
       this.router.navigate(['/login']);
     }
   }

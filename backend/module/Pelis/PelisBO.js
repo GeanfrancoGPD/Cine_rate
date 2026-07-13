@@ -29,6 +29,103 @@ export default class PelisBO {
     return Number.isFinite(parsed) ? parsed : null;
   }
 
+  async ensureGenreMap() {
+    if (Object.keys(this.repositoryApi.mapaGeneros).length > 0) {
+      return this.repositoryApi.mapaGeneros;
+    }
+
+    const generosBD = await this.repository.getGeneros();
+    if (generosBD && generosBD.length > 0) {
+      generosBD.forEach((g) => {
+        this.repositoryApi.mapaGeneros[g.tmdb_genero_id] = g.nombre;
+      });
+      return this.repositoryApi.mapaGeneros;
+    }
+
+    const generosApi = await this.repositoryApi.getAllGenres();
+    if (generosApi && Object.keys(generosApi).length > 0) {
+      this.repositoryApi.mapaGeneros = { ...generosApi };
+    }
+
+    return this.repositoryApi.mapaGeneros;
+  }
+
+  buildGenreNames(genreIds = []) {
+    if (!Array.isArray(genreIds) || genreIds.length === 0) {
+      return "";
+    }
+
+    return genreIds
+      .map((genreId) => this.repositoryApi.mapaGeneros[genreId])
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  async resolveInternalGenreIds(tmdbGenreIds = []) {
+    if (!Array.isArray(tmdbGenreIds) || tmdbGenreIds.length === 0) {
+      return [];
+    }
+
+    const internalGenreIds = [];
+
+    for (const tmdbGenreId of tmdbGenreIds) {
+      const generoEnBD = await this.repository.getGeneroByTmdbId(tmdbGenreId);
+      const registroGenero = generoEnBD[0]?.[0] || generoEnBD[0];
+
+      if (registroGenero?.id) {
+        internalGenreIds.push(registroGenero.id);
+        continue;
+      }
+
+      const nombreGenero = this.repositoryApi.mapaGeneros[tmdbGenreId];
+      if (!nombreGenero) {
+        console.warn(`Nombre de género no encontrado para TMDB ID: ${tmdbGenreId}`);
+        continue;
+      }
+
+      const nuevoGenero = await this.repository.createGenero(tmdbGenreId, nombreGenero);
+      const registroNuevo = nuevoGenero[0]?.[0] || nuevoGenero[0];
+      if (registroNuevo?.id) {
+        internalGenreIds.push(registroNuevo.id);
+      }
+    }
+
+    return internalGenreIds;
+  }
+
+  enrichMoviesWithGenreData(movies = [], sourceMovies = []) {
+    const sourceByTmdbId = new Map();
+
+    for (const sourceMovie of sourceMovies) {
+      const sourceId = Number(sourceMovie?.id ?? sourceMovie?.tmdb_id);
+      if (Number.isFinite(sourceId)) {
+        sourceByTmdbId.set(sourceId, sourceMovie);
+      }
+    }
+
+    return movies.map((movie) => {
+      const tmdbId = Number(movie?.tmdb_id ?? movie?.id);
+      const sourceMovie = Number.isFinite(tmdbId) ? sourceByTmdbId.get(tmdbId) : null;
+      const sourceGenreIds = Array.isArray(sourceMovie?.genre_ids)
+        ? sourceMovie.genre_ids
+        : [];
+      const genreIds = sourceGenreIds.length > 0
+        ? sourceGenreIds
+        : Array.isArray(movie?.genre_ids)
+          ? movie.genre_ids
+          : [];
+      const genreNames = this.buildGenreNames(genreIds);
+      const existingGenreNames = String(movie?.genre_names ?? "").trim();
+
+      return {
+        ...movie,
+        genre_ids: genreIds,
+        genre_names: genreNames || existingGenreNames,
+        genres: genreNames ? genreNames.split(", ") : [],
+      };
+    });
+  }
+
   // ==================== AUTENTICACIÓN ====================
   async login(req, res) {
     const { gmail, email, password } = req.body;
@@ -138,7 +235,7 @@ export default class PelisBO {
 
   async deleteUser(req, res) {
     try {
-      const usuarioId = req.body.id ?? this.resolveUserId(req);
+      const usuarioId = req.body?.id ?? (await this.resolveUserId(req));
 
       if (!usuarioId) {
         return res
@@ -157,7 +254,7 @@ export default class PelisBO {
 
   async updateUser(req, res) {
     try {
-      const usuarioId = req.body.id ?? this.resolveUserId(req);
+      const usuarioId = req.body?.id ?? (await this.resolveUserId(req));
 
       if (!usuarioId) {
         return res
@@ -165,19 +262,19 @@ export default class PelisBO {
           .json({ success: false, message: "Usuario inválido" });
       }
 
-      const { nombre, gmail, password, tipo } = req.body;
+      const { nombre, email, gmail, password, tipo } = req.body;
 
-      if (!nombre && !gmail && !password && !tipo) {
+      if (!nombre && !email && !gmail && !password && !tipo) {
         return res.status(400).json({
           success: false,
           message:
-            "Al menos un campo (nombre, gmail, password o tipo) es requerido",
+            "Al menos un campo (nombre, email, gmail, password o tipo) es requerido",
         });
       }
 
       const updateData = {};
       if (nombre) updateData.nombre = nombre;
-      if (gmail) updateData.gmail = gmail;
+      if (email || gmail) updateData.email = email ?? gmail;
       if (password) {
         const hashedPassword = await this.bcrypt.hash(password);
         updateData.password_hash = hashedPassword;
@@ -195,7 +292,7 @@ export default class PelisBO {
 
   async updatePassword(req, res) {
     try {
-      const usuarioId = req.body.id ?? this.resolveUserId(req);
+      const usuarioId = req.body?.id ?? (await this.resolveUserId(req));
 
       if (!usuarioId) {
         return res
@@ -288,41 +385,62 @@ export default class PelisBO {
     try {
       let data = await this.repository.getPopularMovies();
 
-      if (!data || data.length === 0) {
-        const apiData = await this.repositoryApi.getPopularMovies();
+      if (Array.isArray(data) && data.length > 0) {
+        const needsGenreData = data.some(
+          (movie) => !String(movie?.genre_names ?? "").trim(),
+        );
 
-        if (Array.isArray(apiData) && apiData.length > 0) {
-          data = [];
-          for (const item of apiData) {
-            const nuevoContenido = await this.repository.createContenido([
-              {
-                tmdb_id: item.id,
-                tipo: "PELICULA",
-                titulo: item.original_title,
-                sinopsis: item.overview,
-                fecha_lanzamiento: item.release_date,
-                poster_url: item.poster_path
-                  ? "https://image.tmdb.org/t/p/w780" + item.poster_path
-                  : null,
-                backdrop_url: item.backdrop_path
-                  ? "https://image.tmdb.org/t/p/w780" + item.backdrop_path
-                  : null,
-                puntuacion_tmdb: item.vote_average,
-                popularidad: item.popularity,
-              },
-            ]);
+        if (needsGenreData) {
+          await this.ensureGenreMap();
+          const apiData = await this.repositoryApi.getPopularMovies();
+          data = this.enrichMoviesWithGenreData(data, apiData);
+        }
 
-            const contenidoId = nuevoContenido[0][0].id;
-            if (item.genre_ids) {
-              for (const genreId of item.genre_ids) {
-                await this.repository.createContenidoGenero(
-                  contenidoId,
-                  genreId,
-                );
-              }
-            }
-            data.push({ ...nuevoContenido[0][0], genre_ids: item.genre_ids });
+        return res.status(200).json({ success: true, data });
+      }
+
+      await this.ensureGenreMap();
+      const apiData = await this.repositoryApi.getPopularMovies();
+
+      if (Array.isArray(apiData) && apiData.length > 0) {
+        data = [];
+        for (const item of apiData) {
+          const nuevoContenido = await this.repository.createContenido([
+            {
+              tmdb_id: item.id,
+              tipo: "PELICULA",
+              titulo: item.original_title,
+              sinopsis: item.overview,
+              fecha_lanzamiento: item.release_date,
+              poster_url: item.poster_path
+                ? "https://image.tmdb.org/t/p/w780" + item.poster_path
+                : null,
+              backdrop_url: item.backdrop_path
+                ? "https://image.tmdb.org/t/p/w780" + item.backdrop_path
+                : null,
+              puntuacion_tmdb: item.vote_average,
+              popularidad: item.popularity,
+            },
+          ]);
+
+          const contenidoId = nuevoContenido[0][0].id;
+          const genreNames = this.buildGenreNames(item.genre_ids);
+          const genreIdsInternos = await this.resolveInternalGenreIds(item.genre_ids);
+
+          for (const genreId of genreIdsInternos) {
+              await this.repository.createContenidoGenero(
+                contenidoId,
+                genreId,
+              );
           }
+          data.push({
+            ...nuevoContenido[0][0],
+            genre_ids: item.genre_ids,
+            genre_names: genreNames,
+            genres: genreNames
+              ? genreNames.split(", ")
+              : [],
+          });
         }
       }
 
@@ -349,73 +467,63 @@ export default class PelisBO {
       // 1. Mantenemos la búsqueda con comodines para SQL LIKE
       let data = await this.repository.searchByTitle(`%${nombre}%`);
 
-      if (!data || data.length === 0) {
-        const apiData = await this.repositoryApi.buscarPelicula(nombre);
-        data = [];
+      if (Array.isArray(data) && data.length > 0) {
+        const needsGenreData = data.some(
+          (movie) => !String(movie?.genre_names ?? "").trim(),
+        );
 
-        if (apiData && apiData.length > 0) {
-          for (const item of apiData) {
-            const generoIdsInternos = [];
-            if (item.genre_ids && Array.isArray(item.genre_ids)) {
-              for (const tmdbGenreId of item.genre_ids) {
-                // Corregido: Usamos tu método original getGeneroByTmdbId
-                let generoEnBD =
-                  await this.repository.getGeneroByTmdbId(tmdbGenreId);
+        if (needsGenreData) {
+          await this.ensureGenreMap();
+          const apiData = await this.repositoryApi.buscarPelicula(nombre);
+          data = this.enrichMoviesWithGenreData(data, apiData);
+        }
 
-                // Ajustamos la lectura del índice según lo que devuelva tu DBComponent [0] o [0][0]
-                const registroGenero = generoEnBD[0]?.[0] || generoEnBD[0];
+        return res.json({ success: true, data });
+      }
 
-                if (registroGenero && registroGenero.id) {
-                  generoIdsInternos.push(registroGenero.id);
-                } else {
-                  const nombreGenero =
-                    this.repositoryApi.mapaGeneros[tmdbGenreId];
-                  if (nombreGenero) {
-                    const nuevoGenero = await this.repository.createGenero(
-                      tmdbGenreId,
-                      nombreGenero,
-                    );
-                    const registroNuevo = nuevoGenero[0]?.[0] || nuevoGenero[0];
-                    if (registroNuevo && registroNuevo.id) {
-                      generoIdsInternos.push(registroNuevo.id);
-                    }
-                  } else {
-                    console.warn(
-                      `Nombre de género no encontrado para TMDB ID: ${tmdbGenreId}`,
-                    );
-                  }
-                }
-              }
-            }
+      await this.ensureGenreMap();
+      const apiData = await this.repositoryApi.buscarPelicula(nombre);
+      data = [];
 
-            const nuevoContenido = await this.repository.createContenido([
-              {
-                tmdb_id: item.id,
-                tipo: "PELICULA",
-                titulo: item.title,
-                sinopsis: item.overview,
-                fecha_lanzamiento: item.release_date,
-                poster_url: item.poster_path
-                  ? "https://image.tmdb.org/t/p/w780" + item.poster_path
-                  : null,
-                // Corregido: Se eliminó la barra invertida escapada \"
-                backdrop_url: item.backdrop_path
-                  ? "https://image.tmdb.org/t/p/w780" + item.backdrop_path
-                  : null,
-                puntuacion_tmdb: item.vote_average,
-                popularidad: item.popularity,
-              },
-            ]);
+      if (apiData && apiData.length > 0) {
+        for (const item of apiData) {
+          const generoIdsInternos = await this.resolveInternalGenreIds(item.genre_ids);
 
-            const contenidoId = nuevoContenido[0][0].id;
-            for (const generoIdInterno of generoIdsInternos) {
-              await this.repository.createContenidoGenero(
-                contenidoId,
-                generoIdInterno,
-              );
-            }
-            data.push({ ...nuevoContenido[0][0], genre_ids: item.genre_ids });
+          const nuevoContenido = await this.repository.createContenido([
+            {
+              tmdb_id: item.id,
+              tipo: "PELICULA",
+              titulo: item.title,
+              sinopsis: item.overview,
+              fecha_lanzamiento: item.release_date,
+              poster_url: item.poster_path
+                ? "https://image.tmdb.org/t/p/w780" + item.poster_path
+                : null,
+              // Corregido: Se eliminó la barra invertida escapada \"
+              backdrop_url: item.backdrop_path
+                ? "https://image.tmdb.org/t/p/w780" + item.backdrop_path
+                : null,
+              puntuacion_tmdb: item.vote_average,
+              popularidad: item.popularity,
+            },
+          ]);
+
+          const contenidoId = nuevoContenido[0][0].id;
+          const genreNames = this.buildGenreNames(item.genre_ids);
+          for (const generoIdInterno of generoIdsInternos) {
+            await this.repository.createContenidoGenero(
+              contenidoId,
+              generoIdInterno,
+            );
           }
+          data.push({
+            ...nuevoContenido[0][0],
+            genre_ids: item.genre_ids,
+            genre_names: genreNames,
+            genres: genreNames
+              ? genreNames.split(", ")
+              : [],
+          });
         }
       }
       return res.json({ success: true, data });

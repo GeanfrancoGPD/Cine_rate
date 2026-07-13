@@ -214,7 +214,7 @@
     "orderArray": ["id"]
   },
   "searchByTitle": {
-    "query": "SELECT * FROM contenidos WHERE LOWER(titulo) LIKE LOWER($1)",
+    "query": "SELECT c.id, c.tmdb_id, c.tipo, c.titulo, c.sinopsis, c.fecha_lanzamiento, c.poster_url, c.backdrop_url, c.puntuacion_tmdb, c.popularidad, c.fecha_importacion, COALESCE(STRING_AGG(DISTINCT g.nombre, ', '), '') AS genre_names FROM contenidos c LEFT JOIN contenido_genero cg ON cg.contenido_id = c.id LEFT JOIN generos g ON g.id = cg.genero_id WHERE LOWER(c.titulo) LIKE LOWER($1) GROUP BY c.id, c.tmdb_id, c.tipo, c.titulo, c.sinopsis, c.fecha_lanzamiento, c.poster_url, c.backdrop_url, c.puntuacion_tmdb, c.popularidad, c.fecha_importacion",
     "structure_params": {
       "titulo": "string"
     },
@@ -241,7 +241,7 @@
     "orderArray": ["nombre"]
   },
   "getPopularMovies": {
-    "query": "SELECT id, tmdb_id, tipo, titulo, sinopsis, fecha_lanzamiento, poster_url, backdrop_url, puntuacion_tmdb, popularidad, fecha_importacion FROM public.contenidos LIMIT 1000",
+    "query": "SELECT c.id, c.tmdb_id, c.tipo, c.titulo, c.sinopsis, c.fecha_lanzamiento, c.poster_url, c.backdrop_url, c.puntuacion_tmdb, c.popularidad, c.fecha_importacion, COALESCE(STRING_AGG(DISTINCT g.nombre, ', '), '') AS genre_names FROM public.contenidos c LEFT JOIN contenido_genero cg ON cg.contenido_id = c.id LEFT JOIN generos g ON g.id = cg.genero_id GROUP BY c.id, c.tmdb_id, c.tipo, c.titulo, c.sinopsis, c.fecha_lanzamiento, c.poster_url, c.backdrop_url, c.puntuacion_tmdb, c.popularidad, c.fecha_importacion LIMIT 1000",
     "structure_params": {},
     "orderArray": []
   },

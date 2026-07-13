@@ -9,6 +9,7 @@ import { ReviewCardComponent } from '../../molecules/review-card/review-card.com
 import { MOCK_MOVIES, Movie, MOCK_USER_PROFILE, Review } from '../../../data/mock-data';
 import { FormsModule } from '@angular/forms';
 import services from '../../../services/pelis-api';
+import UserActivityService from '../../../services/user-activity.service';
 
 @Component({
   selector: 'app-movie-detail',
@@ -28,6 +29,7 @@ import services from '../../../services/pelis-api';
 })
 export class MovieDetailPage implements OnInit {
   private readonly pelisApi = inject(services);
+  private readonly userActivity = inject(UserActivityService);
   movie?: Movie;
   selectedRating = 5;
   reviewText = '';
@@ -35,8 +37,6 @@ export class MovieDetailPage implements OnInit {
   editingReviewId: number | null = null;
   editingText = '';
   editingRating = 5;
-  showWatchRating = false;
-  watchedRating = 5;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -134,6 +134,7 @@ export class MovieDetailPage implements OnInit {
     if (this.movie) {
       this.movie.reviews = this.movie.reviews || [];
       this.movie.reviews.unshift(newReview as any);
+      this.userActivity.recordWatchedMovie(this.movie, this.selectedRating);
     }
 
     this.reviewText = '';
@@ -175,18 +176,5 @@ export class MovieDetailPage implements OnInit {
     if (this.editingReviewId === reviewId) {
       this.cancelEditing();
     }
-  }
-
-  toggleWatchRating() {
-    this.showWatchRating = !this.showWatchRating;
-  }
-
-  saveWatchRating() {
-    if (!this.movie) {
-      return;
-    }
-    this.movie.userRating = this.watchedRating;
-    this.showWatchRating = false;
-    alert(`Has registrado la película como vista con ${this.watchedRating} estrellas.`);
   }
 }

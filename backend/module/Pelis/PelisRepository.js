@@ -22,7 +22,7 @@ export default class PelisRepository {
   }
 
   async deleteUserAccount(usuarioId) {
-    return await this.db.excecuteNameQuery("deleteUserAccount", {
+    return await this.db.excecuteNameQuery("deleteUser", {
       id: usuarioId,
     });
   }

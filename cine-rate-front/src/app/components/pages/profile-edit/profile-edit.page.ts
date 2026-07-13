@@ -50,16 +50,21 @@ export class ProfileEditPage implements OnInit {
     try {
       const payload: Record<string, string> = {};
       if (this.user['name']) payload['nombre'] = this.user['name'];
-      if (this.user['email']) payload['gmail'] = this.user['email'];
+      if (this.user['email']) payload['email'] = this.user['email'];
       if (this.user['password']) payload['password'] = this.user['password'];
 
       if (Object.keys(payload).length > 0) {
-        await lastValueFrom(
+        const response: any = await lastValueFrom(
           this.http.put(`${environment.apiUrl}/user`, payload, { withCredentials: true })
         );
+
+        if (!response?.success) {
+          throw new Error(response?.message || 'No se pudo actualizar el perfil.');
+        }
       }
     } catch (error) {
-      // Se ignora y se vuelve al perfil aunque no se haya actualizado
+      alert('No se pudo actualizar el perfil.');
+      return;
     }
     this.router.navigate(['/profile'], { queryParams: { refresh: Date.now() } });
   }

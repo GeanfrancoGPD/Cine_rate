@@ -40,12 +40,6 @@
             <span>Críticos: {{ criticAverageRating !== null ? (criticAverageRating | number:'1.1-1') : 'N/A' }}</span>
           </div>
         </div>
-        <div class="movie-actions">
-          <ion-button fill="outline" size="small" (click)="toggleWatchRating()">
-            Vista
-          </ion-button>
-          <span *ngIf="movie.userRating" class="user-rating-text">Tu puntuación: {{ movie.userRating }}/5</span>
-        </div>
       </div>
     </div>
 
@@ -53,26 +47,8 @@
       <h3>Sinopsis</h3>
       <p>{{ movie.synopsis || 'Sin sinopsis disponible.' }}</p>
     </div>
-    <div class="watch-rating-panel" *ngIf="showWatchRating">
-      <div class="watch-rating-title">¿Cómo la calificarías?</div>
-      <div class="rating-selector rating-circles">
-        <button
-          type="button"
-          *ngFor="let value of [1,2,3,4,5]"
-          class="rating-circle"
-          [class.selected]="value <= watchedRating"
-          (click)="watchedRating = value"
-        >
-          {{ value }}
-        </button>
-      </div>
-      <ion-button expand="block" size="small" color="success" (click)="saveWatchRating()">
-        Guardar puntuación
-      </ion-button>
-    </div>
-
     <div class="reviews-section">
-      <h3>Reseñas <span class="review-count">({{ movie.reviews?.length || 0 }} respuestas)</span></h3>
+      <h3>Reseñas <span class="review-count">({{ movie.reviews.length || 0 }} respuestas)</span></h3>
       <div *ngIf="movie.reviews && movie.reviews.length > 0">
         <div
           *ngFor="let review of movie.reviews"
@@ -117,7 +93,7 @@
       <div class="review-input">
         <textarea [(ngModel)]="reviewText" maxlength="200" placeholder="Escribe tu reseña aquí..."></textarea>
         <div class="char-row">
-          <span class="char-count">{{ reviewText?.length || 0 }} / 200</span>
+          <span class="char-count">{{ reviewText.length || 0 }} / 200</span>
         </div>
       </div>
       <div class="rating-selector">

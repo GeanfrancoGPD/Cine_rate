@@ -28,7 +28,7 @@ export interface UserProfile {
   password: string;
   avatar?: string;
   media: number;
-  likes: number;
+  vistas: number;
   subdivisions: number;
   comments: UserComment[];
 }
@@ -123,7 +123,7 @@ export const MOCK_USER_PROFILE: UserProfile = {
   password: 'demo1234',
   avatar: '',
   media: 8.4,
-  likes: 1200,
+  vistas: 3,
   subdivisions: 84,
   comments: [
     {

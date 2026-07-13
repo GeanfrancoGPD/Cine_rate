@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonIcon, IonSelect, IonSelectOption, IonItem, IonLabel } from '@ionic/angular/standalone';
+import { IonContent, IonSelect, IonSelectOption, IonItem, IonLabel } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { TopBarComponent } from '../../molecules/top-bar/top-bar.component';
 import { BottomNavComponent } from '../../molecules/bottom-nav/bottom-nav.component';
 import { MovieCardComponent } from '../../molecules/movie-card/movie-card.component';
 import { GenreChipComponent } from '../../atom/genre-chip/genre-chip.component';
-import { MOCK_MOVIES, Movie } from '../../../data/mock-data';
+import { Movie } from '../../../data/mock-data';
 import { FormsModule } from '@angular/forms';
+import UserActivityService from '../../../services/user-activity.service';
 
 @Component({
   selector: 'app-activity',
@@ -15,7 +16,6 @@ import { FormsModule } from '@angular/forms';
   imports: [
     CommonModule,
     IonContent,
-    IonIcon,
     IonSelect,
     IonSelectOption,
     IonItem,
@@ -38,10 +38,13 @@ export class ActivityPage implements OnInit {
   sortBy: 'rating' | 'date' = 'rating';
   displayedMovies: Movie[] = [];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private readonly userActivity: UserActivityService,
+  ) {}
 
   ngOnInit() {
-    this.watchedMovies = MOCK_MOVIES.filter(m => typeof m.userRating === 'number');
+    this.watchedMovies = this.userActivity.getWatchedMovies();
     const set = new Set<string>();
     this.watchedMovies.forEach(m => set.add(m.genre || ''));
     this.genres = Array.from(set).filter(g => g).slice(0, 12);
