@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonContent, IonIcon, IonButton } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -8,6 +8,7 @@ import { RatingStarsComponent } from '../../atom/rating-stars/rating-stars.compo
 import { ReviewCardComponent } from '../../molecules/review-card/review-card.component';
 import { MOCK_MOVIES, Movie, MOCK_USER_PROFILE, Review } from '../../../data/mock-data';
 import { FormsModule } from '@angular/forms';
+import services from '../../../services/pelis-api';
 
 @Component({
   selector: 'app-movie-detail',
@@ -18,7 +19,6 @@ import { FormsModule } from '@angular/forms';
     IonIcon,
     IonButton,
     FormsModule,
-    TopBarComponent,
     BottomNavComponent,
     RatingStarsComponent,
     ReviewCardComponent
@@ -27,6 +27,7 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./movie-detail.page.scss']
 })
 export class MovieDetailPage implements OnInit {
+  private readonly pelisApi = inject(services);
   movie?: Movie;
   selectedRating = 5;
   reviewText = '';
@@ -38,13 +39,28 @@ export class MovieDetailPage implements OnInit {
   watchedRating = 5;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
   ) {}
 
-  ngOnInit() {
+  async ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.movie = MOCK_MOVIES.find(m => m.id === id);
+    const fallbackMovie = MOCK_MOVIES.find((m) => m.id === id);
+
+    try {
+      const list = await this.pelisApi.getPopularMovies();
+      const apiMovie = list.find((item: Movie) => Number(item.id) === id);
+
+      if (apiMovie) {
+        this.movie = apiMovie;
+      } else if (fallbackMovie) {
+        this.movie = fallbackMovie;
+      }
+    } catch (error) {
+      if (fallbackMovie) {
+        this.movie = fallbackMovie;
+      }
+    }
   }
 
   onSearch(term: string) {

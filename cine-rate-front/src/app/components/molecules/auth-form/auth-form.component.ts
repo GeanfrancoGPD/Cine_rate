@@ -21,11 +21,11 @@ export class AuthFormComponent {
 
   onSubmit() {
     if (this.mode === 'login') {
-      this.submitForm.emit({ email: this.email, password: this.password });
+      this.submitForm.emit({ gmail: this.email, password: this.password });
     } else {
       this.submitForm.emit({
-        name: this.name,
-        email: this.email,
+        nombre: this.name,
+        gmail: this.email,
         password: this.password,
       });
     }

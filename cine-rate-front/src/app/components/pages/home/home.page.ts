@@ -31,7 +31,6 @@ import {
   imports: [
     CommonModule,
     IonContent,
-    IonIcon,
     FormsModule,
     IonSearchbar,
     IonSelect,
@@ -65,14 +64,28 @@ export class HomePage implements OnInit {
   }
 
   async ngOnInit() {
-    this.popularMovies = await this.pelisApi.getPopularMovies(); // Usar la función para obtener películas populares desde los mocks
-    // extraer géneros únicos desde los mocks
-    const set = new Set<string>();
-    this.popularMovies.forEach((m) => set.add(m.genre || ''));
-    this.genres = Array.from(set)
-      .filter((g) => g)
-      .slice(0, 12);
+    const [movies, genresFromApi] = await Promise.all([
+      this.pelisApi.getPopularMovies(),
+      this.pelisApi.getGenres().catch(() => [] as string[]),
+    ]);
+
+    this.popularMovies = movies;
+    this.genres = genresFromApi.length > 0
+      ? genresFromApi
+      : this.extractGenresFromMovies(this.popularMovies);
     this.applyFilters();
+  }
+
+  private extractGenresFromMovies(movies: Movie[]): string[] {
+    const set = new Set<string>();
+    movies.forEach((movie) => {
+      String(movie.genre || '')
+        .split(',')
+        .map((genre) => genre.trim())
+        .filter(Boolean)
+        .forEach((genre) => set.add(genre));
+    });
+    return Array.from(set).filter((genre) => genre && genre !== 'Sin género').slice(0, 12);
   }
 
   onTabChange(tab: 'home' | 'activity' | 'profile') {

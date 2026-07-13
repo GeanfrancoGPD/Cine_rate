@@ -1,13 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonContent, IonIcon, IonButton } from '@ionic/angular/standalone';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { lastValueFrom } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import { TopBarComponent } from '../../molecules/top-bar/top-bar.component';
 import { BottomNavComponent } from '../../molecules/bottom-nav/bottom-nav.component';
 import { ProfileStatsComponent } from '../../molecules/profile-stats/profile-stats.component';
 import { ProfileCommentComponent } from '../../molecules/profile-comment/profile-comment.component';
 import {
-  MOCK_USER_PROFILE,
   UserProfile,
   UserComment,
 } from '../../../data/mock-data';
@@ -39,15 +41,55 @@ addIcons({ personCircleOutline, logOutOutline, createOutline, trashOutline });
   styleUrls: ['./profile.page.scss'],
 })
 export class ProfilePage implements OnInit {
-  user!: UserProfile;
+  user: UserProfile = {
+    name: '',
+    email: '',
+    password: '',
+    avatar: '',
+    media: 0,
+    likes: 0,
+    subdivisions: 0,
+    comments: [],
+  };
 
   editingCommentId: number | null = null;
   editingText = '';
 
-  constructor(private router: Router) {}
+  constructor(
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
+    private readonly http: HttpClient,
+  ) {}
 
   ngOnInit() {
-    this.user = MOCK_USER_PROFILE;
+    this.route.queryParamMap.subscribe(() => {
+      this.loadUser();
+    });
+  }
+
+  async loadUser() {
+    try {
+      const response: any = await lastValueFrom(
+        this.http.get(`${environment.apiUrl}/auth-check`, { withCredentials: true })
+      );
+
+      if (response?.success && response?.user) {
+        this.user = {
+          name: response.user.nombre || response.user.email || 'Usuario',
+          email: response.user.email || '',
+          password: '',
+          avatar: '',
+          media: 0,
+          likes: 0,
+          subdivisions: 0,
+          comments: [],
+        };
+      } else {
+        this.router.navigate(['/login']);
+      }
+    } catch (error) {
+      this.router.navigate(['/login']);
+    }
   }
 
   onSearch(term: string) {
@@ -95,8 +137,14 @@ export class ProfilePage implements OnInit {
     this.router.navigate(['/profile/edit']);
   }
 
-  logout() {
-    // Navega a la pantalla de login al salir
+  async logout() {
+    try {
+      await lastValueFrom(
+        this.http.post(`${environment.apiUrl}/logout`, {}, { withCredentials: true })
+      );
+    } catch (error) {
+      // Ignorar error de cierre de sesión y seguir al login
+    }
     this.router.navigate(['/login']);
   }
 
@@ -105,15 +153,6 @@ export class ProfilePage implements OnInit {
       'Eliminar este perfil será permanente. ¿Deseas continuar?',
     );
     if (ok) {
-      // Limpiar los datos del mock y volver al login
-      MOCK_USER_PROFILE.name = '';
-      MOCK_USER_PROFILE.email = '';
-      MOCK_USER_PROFILE.password = '';
-      MOCK_USER_PROFILE.avatar = '';
-      MOCK_USER_PROFILE.media = 0;
-      MOCK_USER_PROFILE.likes = 0;
-      MOCK_USER_PROFILE.subdivisions = 0;
-      MOCK_USER_PROFILE.comments = [];
       this.router.navigate(['/login']);
     }
   }
