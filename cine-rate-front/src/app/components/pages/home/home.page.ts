@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonContent,
@@ -16,6 +16,8 @@ import { MovieCardComponent } from '../../molecules/movie-card/movie-card.compon
 import { GenreChipComponent } from '../../atom/genre-chip/genre-chip.component';
 import { MOCK_MOVIES, Movie } from '../../../data/mock-data';
 import { FormsModule } from '@angular/forms';
+
+import services from '../../../services/pelis-api';
 
 import { addIcons } from 'ionicons';
 import {
@@ -45,6 +47,7 @@ import {
   styleUrls: ['./home.page.scss'],
 })
 export class HomePage implements OnInit {
+  private pelisApi = inject(services);
   popularMovies: Movie[] = [];
   genres: string[] = [];
   activeGenre = '';
@@ -61,8 +64,8 @@ export class HomePage implements OnInit {
     });
   }
 
-  ngOnInit() {
-    this.popularMovies = MOCK_MOVIES;
+  async ngOnInit() {
+    this.popularMovies = await this.pelisApi.getPopularMovies(); // Usar la función para obtener películas populares desde los mocks
     // extraer géneros únicos desde los mocks
     const set = new Set<string>();
     this.popularMovies.forEach((m) => set.add(m.genre || ''));

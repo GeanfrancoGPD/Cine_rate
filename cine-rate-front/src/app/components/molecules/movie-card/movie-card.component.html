@@ -1,9 +1,15 @@
 <div class="movie-card" (click)="clickCard.emit(movie)">
   <!-- Poster placeholder -->
-  <div class="poster-placeholder">
-    <ion-icon name="film-outline" class="poster-icon"></ion-icon>
+  <div class="poster-container">
+    @if (movie.poster) {
+      <img [src]="movie.poster" [alt]="movie.title" class="movie-poster" />
+    } @else {
+      <div class="poster-placeholder">
+        <ion-icon name="film-outline" class="poster-icon"></ion-icon>
+      </div>
+    }
   </div>
-  
+
   <!-- Información -->
   <div class="movie-info">
     <h3 class="movie-title">{{ movie.title }}</h3>
@@ -13,7 +19,7 @@
     </div>
     <app-rating-stars [rating]="movie.rating" size="16px"></app-rating-stars>
   </div>
-  
+
   <div class="movie-arrow">
     <ion-icon name="chevron-forward-outline"></ion-icon>
   </div>

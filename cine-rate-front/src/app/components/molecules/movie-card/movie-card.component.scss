@@ -7,11 +7,15 @@
   border-radius: 22px;
   border: 1px solid rgba(221, 183, 255, 0.1);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
-  transition: transform 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease,
+    background-color 0.3s ease;
   cursor: pointer;
   margin-bottom: 14px;
 }
 
+/* Efectos Hover y Active */
 .movie-card:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(221, 183, 255, 0.24);
@@ -22,19 +26,37 @@
   transform: scale(0.98);
 }
 
-/* Poster placeholder */
-.poster-placeholder {
+/* --- CONTENEDOR DEL POSTER (CORRECCIÓN) --- */
+.poster-container {
   width: 74px;
   min-width: 74px;
   height: 105px;
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  overflow: hidden; /* Mantiene los bordes redondeados de la imagen */
+  flex-shrink: 0;
+}
+
+/* Imagen del póster real */
+.movie-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Poster placeholder (Hereda el tamaño del padre) */
+.poster-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.02)
+  );
   border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .poster-icon {
@@ -43,13 +65,14 @@
   opacity: 0.45;
 }
 
+/* --- INFORMACIÓN DE LA PELÍCULA --- */
 .movie-info {
   flex: 1;
   min-width: 0;
 }
 
 .movie-title {
-  font-family: 'Sora', sans-serif;
+  font-family: "Sora", sans-serif;
   font-size: 16px;
   font-weight: 600;
   color: #dae2fd;
@@ -68,11 +91,12 @@
 
 .movie-genre,
 .movie-date {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 12px;
   color: #94a3b8;
 }
 
+/* Flecha indicadora */
 .movie-arrow {
   color: #64748b;
   font-size: 20px;
@@ -87,17 +111,18 @@
   transform: translateX(4px);
 }
 
+/* --- RESPONSIVE / MEDIA QUERY --- */
 @media (max-width: 480px) {
-  .poster-placeholder {
-    width: 60px;
-    min-width: 60px;
-    height: 85px;
+  .poster-container {
+    width: 80px;
+    min-width: 80px;
+    height: 105px;
   }
-  
+
   .poster-icon {
     font-size: 24px;
   }
-  
+
   .movie-title {
     font-size: 14px;
   }
