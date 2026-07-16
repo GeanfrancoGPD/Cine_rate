@@ -67,7 +67,7 @@
   },
 
   "getContenidoById": {
-    "query": "SELECT * FROM contenidos WHERE id = $1",
+    "query": "SELECT c.*, COALESCE(array_to_json(array_agg(g.nombre)), '[]'::json) AS generos FROM contenidos c LEFT JOIN contenido_genero cg ON c.id = cg.contenido_id LEFT JOIN generos g ON cg.genero_id = g.id WHERE c.id = $1 GROUP BY c.id",
     "structure_params": {
       "id": "number"
     },

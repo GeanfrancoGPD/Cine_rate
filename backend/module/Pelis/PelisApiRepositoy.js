@@ -114,6 +114,37 @@ export default class PelisApiRepository {
       throw error;
     }
   }
+
+  async getMovieDetails(id) {
+    const url = `https://api.themoviedb.org/3/movie/${id}?language=es-ES`;
+
+    if (Object.keys(this.mapaGeneros).length === 0) {
+      await this.getAllGenres();
+    }
+
+    const opciones = {
+      method: "GET",
+      headers: {
+        accept: "application/json",
+        Authorization: `Bearer ${BEARER_TOKEN}`,
+      },
+    };
+
+    try {
+      const respuesta = await fetch(url, opciones);
+
+      if (!respuesta.ok) {
+        throw new Error(`Error HTTP: ${respuesta.status}`);
+      }
+
+      const datos = await respuesta.json();
+
+      return datos;
+    } catch (error) {
+      console.error("❌ Error al realizar la petición:", error.message);
+      throw error;
+    }
+  }
 }
 
 // Ejemplo de uso

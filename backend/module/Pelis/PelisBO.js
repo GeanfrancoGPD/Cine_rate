@@ -79,11 +79,16 @@ export default class PelisBO {
 
       const nombreGenero = this.repositoryApi.mapaGeneros[tmdbGenreId];
       if (!nombreGenero) {
-        console.warn(`Nombre de género no encontrado para TMDB ID: ${tmdbGenreId}`);
+        console.warn(
+          `Nombre de género no encontrado para TMDB ID: ${tmdbGenreId}`,
+        );
         continue;
       }
 
-      const nuevoGenero = await this.repository.createGenero(tmdbGenreId, nombreGenero);
+      const nuevoGenero = await this.repository.createGenero(
+        tmdbGenreId,
+        nombreGenero,
+      );
       const registroNuevo = nuevoGenero[0]?.[0] || nuevoGenero[0];
       if (registroNuevo?.id) {
         internalGenreIds.push(registroNuevo.id);
@@ -105,15 +110,18 @@ export default class PelisBO {
 
     return movies.map((movie) => {
       const tmdbId = Number(movie?.tmdb_id ?? movie?.id);
-      const sourceMovie = Number.isFinite(tmdbId) ? sourceByTmdbId.get(tmdbId) : null;
+      const sourceMovie = Number.isFinite(tmdbId)
+        ? sourceByTmdbId.get(tmdbId)
+        : null;
       const sourceGenreIds = Array.isArray(sourceMovie?.genre_ids)
         ? sourceMovie.genre_ids
         : [];
-      const genreIds = sourceGenreIds.length > 0
-        ? sourceGenreIds
-        : Array.isArray(movie?.genre_ids)
-          ? movie.genre_ids
-          : [];
+      const genreIds =
+        sourceGenreIds.length > 0
+          ? sourceGenreIds
+          : Array.isArray(movie?.genre_ids)
+            ? movie.genre_ids
+            : [];
       const genreNames = this.buildGenreNames(genreIds);
       const existingGenreNames = String(movie?.genre_names ?? "").trim();
 
@@ -188,7 +196,8 @@ export default class PelisBO {
       });
     }
 
-    const nameValidation = await this.validator.validateUsername(normalizedName);
+    const nameValidation =
+      await this.validator.validateUsername(normalizedName);
     if (!nameValidation.success) {
       return res.status(400).json({
         success: false,
@@ -204,7 +213,8 @@ export default class PelisBO {
       });
     }
 
-    const passwordValidation = await this.validator.validatePassword(normalizedPassword);
+    const passwordValidation =
+      await this.validator.validatePassword(normalizedPassword);
     if (!passwordValidation.success) {
       return res.status(400).json({
         success: false,
@@ -221,7 +231,11 @@ export default class PelisBO {
     }
 
     const hashedPassword = await this.bcrypt.hash(password);
-    await this.repository.createUser(normalizedName, normalizedEmail, hashedPassword);
+    await this.repository.createUser(
+      normalizedName,
+      normalizedEmail,
+      hashedPassword,
+    );
 
     return res.status(201).json({
       success: true,
@@ -425,21 +439,18 @@ export default class PelisBO {
 
           const contenidoId = nuevoContenido[0][0].id;
           const genreNames = this.buildGenreNames(item.genre_ids);
-          const genreIdsInternos = await this.resolveInternalGenreIds(item.genre_ids);
+          const genreIdsInternos = await this.resolveInternalGenreIds(
+            item.genre_ids,
+          );
 
           for (const genreId of genreIdsInternos) {
-              await this.repository.createContenidoGenero(
-                contenidoId,
-                genreId,
-              );
+            await this.repository.createContenidoGenero(contenidoId, genreId);
           }
           data.push({
             ...nuevoContenido[0][0],
             genre_ids: item.genre_ids,
             genre_names: genreNames,
-            genres: genreNames
-              ? genreNames.split(", ")
-              : [],
+            genres: genreNames ? genreNames.split(", ") : [],
           });
         }
       }
@@ -487,7 +498,9 @@ export default class PelisBO {
 
       if (apiData && apiData.length > 0) {
         for (const item of apiData) {
-          const generoIdsInternos = await this.resolveInternalGenreIds(item.genre_ids);
+          const generoIdsInternos = await this.resolveInternalGenreIds(
+            item.genre_ids,
+          );
 
           const nuevoContenido = await this.repository.createContenido([
             {
@@ -520,9 +533,7 @@ export default class PelisBO {
             ...nuevoContenido[0][0],
             genre_ids: item.genre_ids,
             genre_names: genreNames,
-            genres: genreNames
-              ? genreNames.split(", ")
-              : [],
+            genres: genreNames ? genreNames.split(", ") : [],
           });
         }
       }
@@ -533,6 +544,113 @@ export default class PelisBO {
       return res
         .status(500)
         .json({ success: false, message: "No se pudo buscar la película" });
+    }
+  }
+
+  async getMovieDetails(req, res) {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "El ID de la película es requerido",
+      });
+    }
+
+    try {
+      // 1. Intentamos buscar la película en nuestra Base de Datos local
+      // Nota: Dependiendo de tu query de SQL, esta función buscará por ID local o por tmdb_id.
+      let data = await this.repository.getMovieDetails(id);
+      let movieRecord = Array.isArray(data) ? data[0] : data;
+
+      // Si la película ya existe localmente
+      if (movieRecord) {
+        // 2. Verificamos si le faltan los nombres de los géneros
+        const needsGenreData = !String(movieRecord?.genre_names ?? "").trim();
+
+        if (needsGenreData) {
+          await this.ensureGenreMap();
+          // Traemos el detalle de la API para saber qué géneros tiene asignados
+          const apiData = await this.repositoryApi.getMovieDetails(id);
+          const enriched = this.enrichMoviesWithGenreData(
+            [movieRecord],
+            [apiData],
+          );
+          movieRecord = enriched[0];
+        }
+
+        return res.json({ success: true, data: movieRecord });
+      }
+
+      // 3. PASO SALVAVIDAS: Si la película NO está en nuestra base de datos local
+      await this.ensureGenreMap();
+
+      // Traemos los detalles de la API de TMDB
+      const apiMovie = await this.repositoryApi.getMovieDetails(id);
+
+      if (apiMovie) {
+        // Resolvemos los IDs de los géneros internos en nuestra DB
+        const generoIdsInternos = await this.resolveInternalGenreIds(
+          apiMovie.genre_ids || apiMovie.genres?.map((g) => g.id) || [],
+        );
+
+        // Creamos la película en la base de datos
+        const nuevoContenido = await this.repository.createContenido([
+          {
+            tmdb_id: apiMovie.id,
+            tipo: "PELICULA",
+            titulo: apiMovie.title,
+            sinopsis: apiMovie.overview,
+            fecha_lanzamiento: apiMovie.release_date,
+            poster_url: apiMovie.poster_path
+              ? "https://image.tmdb.org/t/p/w780" + apiMovie.poster_path
+              : null,
+            backdrop_url: apiMovie.backdrop_path
+              ? "https://image.tmdb.org/t/p/w780" + apiMovie.backdrop_path
+              : null,
+            puntuacion_tmdb: apiMovie.vote_average,
+            popularidad: apiMovie.popularity,
+          },
+        ]);
+
+        // Extraemos el ID local recién generado por PostgreSQL (BIGSERIAL)
+        const registroCreado = nuevoContenido[0]?.[0] || nuevoContenido[0];
+        const contenidoId = registroCreado.id;
+
+        // Vinculamos los géneros en la tabla intermedia contenido_genero
+        for (const generoIdInterno of generoIdsInternos) {
+          await this.repository.createContenidoGenero(
+            contenidoId,
+            generoIdInterno,
+          );
+        }
+
+        // Reconstruimos los nombres de los géneros para devolverlos al frontend
+        const rawGenreIds =
+          apiMovie.genre_ids || apiMovie.genres?.map((g) => g.id) || [];
+        const genreNames = this.buildGenreNames(rawGenreIds);
+
+        movieRecord = {
+          ...registroCreado,
+          genre_ids: rawGenreIds,
+          genre_names: genreNames,
+          genres: genreNames ? genreNames.split(", ") : [],
+        };
+
+        return res.json({ success: true, data: movieRecord });
+      }
+
+      // Si ni en DB ni en API existe la película
+      return res.status(404).json({
+        success: false,
+        message: "No se encontró la película con el ID proporcionado",
+      });
+    } catch (error) {
+      console.error("Error en getMovieDetails:", error);
+      return res.status(500).json({
+        success: false,
+        message: "No se pudieron obtener los detalles de la película",
+      });
     }
   }
 

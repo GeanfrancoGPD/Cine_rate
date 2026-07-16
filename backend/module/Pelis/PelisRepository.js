@@ -64,6 +64,10 @@ export default class PelisRepository {
     });
   }
 
+  async getMovieDetails(id) {
+    return await this.db.excecuteNameQuery("getContenidoById", { id });
+  }
+
   async createContenidoGenero(contenido_id, genero_id) {
     return await this.db.excecuteNameQuery("createContenidoGenero", {
       contenido_id,

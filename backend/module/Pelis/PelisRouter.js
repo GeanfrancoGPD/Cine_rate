@@ -64,9 +64,9 @@ router.delete("/favorites/:contenidoId", authMiddleware, async (req, res) => {
   await pelisBO.removeFavorito(req, res);
 });
 
-// router.get("/movies/:id", async (req, res) => {
-//   await pelisBO.getMovieDetails(req, res);
-// });
+router.get("/movies/:id", async (req, res) => {
+  await pelisBO.getMovieDetails(req, res);
+});
 
 // ================== Comentarios ===================
 router.post("/comments", authMiddleware, async (req, res) => {
