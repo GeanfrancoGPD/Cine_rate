@@ -3,6 +3,7 @@ import Session from "../../components/session.js";
 import UtilBycript from "../../util/bycript.js";
 import Validator from "../../util/validator.js";
 import PelisApiRepository from "./PelisApiRepositoy.js";
+import { success } from "zod";
 
 export default class PelisBO {
   constructor() {
@@ -656,7 +657,13 @@ export default class PelisBO {
 
   async addFavorito(req, res) {
     try {
-      const usuarioId = req.session.user.id;
+      const usuarioId = await this.resolveUserId(req);
+      if (!usuarioId) {
+        return res.status(401).json({
+          success: false,
+          mensaje: "Necesitas una sesion activa ",
+        });
+      }
       const { contenidoId } = req.body;
 
       if (!contenidoId) {
@@ -713,7 +720,13 @@ export default class PelisBO {
   // ================== Comentarios ===================
   async addComentario(req, res) {
     try {
-      const usuarioId = req.session.user.id; // Aquí usarías resolveUserId
+      const usuarioId = await this.resolveUserId(req); // Aquí usarías resolveUserId
+      if (!usuarioId) {
+        return res.status(400).json({
+          success: false,
+          message: "Debe tener session activa para agregar un comentario",
+        });
+      }
       const { contenidoId, comentario } = req.body;
 
       if (!contenidoId || !comentario) {

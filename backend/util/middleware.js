@@ -9,16 +9,9 @@ const app = express();
 app.use(
   cors({
     origin: [
-      "http://localhost:8081",
-      "http://localhost:8100",
       "http://localhost:4200",
-      "http://192.168.1.165:8081",
-      "http://192.168.100.5:8081",
-      "http://10.159.59.181:8081",
-      "exp://192.168.100.5:8081",
-      "exp://10.147.17.181:8081",
-      "exp://192.168.92.181:8081",
-      "exp://172.27.64.181:8081",
+      "https://localhost", // Agregado para Capacitor Android
+      "capacitor://localhost", // Agregado para Capacitor IOS
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
