@@ -1,11 +1,11 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { IonButton, IonIcon } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-button',
   standalone: true,
-  imports: [IonButton, IonIcon, CommonModule],
+  imports: [IonIcon, CommonModule],
   template: `
     <button class="glow-button" [class.outline]="fill === 'outline'" (click)="onClick.emit()" [disabled]="disabled">
       <ion-icon *ngIf="iconStart" [name]="iconStart" slot="start"></ion-icon>

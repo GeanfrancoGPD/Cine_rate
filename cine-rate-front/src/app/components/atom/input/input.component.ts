@@ -1,12 +1,12 @@
 import { Component, Input, Output, EventEmitter, forwardRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { IonItem, IonLabel, IonInput, IonButton, IonIcon } from '@ionic/angular/standalone';
+import { IonInput, IonButton, IonIcon } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-input',
   standalone: true,
-  imports: [CommonModule, IonItem, IonLabel, IonInput, IonButton, IonIcon],
+  imports: [CommonModule, IonInput, IonButton, IonIcon],
   template: `
     <div class="input-group">
       <div class="label-row" *ngIf="showLabel">
