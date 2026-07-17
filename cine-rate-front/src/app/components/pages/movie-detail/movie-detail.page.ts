@@ -2,15 +2,17 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonContent, IonIcon, IonButton } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TopBarComponent } from '../../molecules/top-bar/top-bar.component';
+// import { TopBarComponent } from '../../molecules/top-bar/top-bar.component';
 import { BottomNavComponent } from '../../molecules/bottom-nav/bottom-nav.component';
 import { RatingStarsComponent } from '../../atom/rating-stars/rating-stars.component';
 import { ReviewCardComponent } from '../../molecules/review-card/review-card.component';
-import { MOCK_MOVIES, Movie, MOCK_USER_PROFILE, Review } from '../../../data/mock-data';
+import { Movie, MOCK_USER_PROFILE, Review } from '../../../data/mock-data';
 import { FormsModule } from '@angular/forms';
 import services from '../../../services/pelis-api';
 import UserActivityService from '../../../services/user-activity.service';
 
+import { addIcons } from 'ionicons';
+import { arrowBackOutline, personCircleOutline } from 'ionicons/icons';
 @Component({
   selector: 'app-movie-detail',
   standalone: true,
@@ -22,10 +24,10 @@ import UserActivityService from '../../../services/user-activity.service';
     FormsModule,
     BottomNavComponent,
     RatingStarsComponent,
-    ReviewCardComponent
+    ReviewCardComponent,
   ],
   templateUrl: './movie-detail.page.html',
-  styleUrls: ['./movie-detail.page.scss']
+  styleUrls: ['./movie-detail.page.scss'],
 })
 export class MovieDetailPage implements OnInit {
   private readonly pelisApi = inject(services);
@@ -41,25 +43,50 @@ export class MovieDetailPage implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-  ) {}
+  ) {
+    addIcons({ arrowBackOutline, personCircleOutline });
+    const navigation = this.router.currentNavigation();
+    if (navigation?.extras.state?.['movie']) {
+      this.movie = navigation.extras.state['movie'] as Movie;
+    }
+  }
 
   async ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
-    const fallbackMovie = MOCK_MOVIES.find((m) => m.id === id);
 
     try {
-      const list = await this.pelisApi.getPopularMovies();
-      const apiMovie = list.find((item: Movie) => Number(item.id) === id);
-
-      if (apiMovie) {
+      if (!this.movie) {
+        const apiMovie = await this.pelisApi.getMovieById(id);
+        if (!apiMovie) {
+          console.error('No se encontró la película con ID:', id);
+          return;
+        }
         this.movie = apiMovie;
-      } else if (fallbackMovie) {
-        this.movie = fallbackMovie;
+      } else {
+        console.log('Película cargada al instante desde el Home:', this.movie);
+      }
+
+      console.log('Cargando comentarios...');
+      const reviews = await this.pelisApi.getComments(id);
+      console.log('Comentarios cargados:', reviews);
+
+      this.movie.reviews = reviews.map((review) => ({
+        id: review.id,
+        author: review.nombre,
+        comment: review.comentario,
+        rating: review.puntuacion,
+        date: review.fecha_creacion,
+        reviewerType: review.reviewerType,
+      }));
+
+      if (!reviews || reviews.length === 0) {
+        console.log('La película no tiene comentarios aún.');
       }
     } catch (error) {
-      if (fallbackMovie) {
-        this.movie = fallbackMovie;
-      }
+      console.error(
+        'Error cargando los detalles o comentarios de la película:',
+        error,
+      );
     }
   }
 
@@ -83,31 +110,48 @@ export class MovieDetailPage implements OnInit {
     if (!this.movie?.reviews?.length) {
       return this.movie?.rating ?? null;
     }
-    return this.movie.reviews.reduce((sum, review) => sum + review.rating, 0) / this.movie.reviews.length;
+    return (
+      this.movie.reviews.reduce((sum, review) => sum + review.rating, 0) /
+      this.movie.reviews.length
+    );
   }
 
   get userAverageRating(): number | null {
     if (!this.movie?.reviews?.length) {
       return null;
     }
-    const userReviews = this.movie.reviews.filter(r => r.reviewerType === 'user');
-    return userReviews.length ? userReviews.reduce((sum, review) => sum + review.rating, 0) / userReviews.length : null;
+    const userReviews = this.movie.reviews.filter(
+      (r) => r.reviewerType === 'user',
+    );
+    return userReviews.length
+      ? userReviews.reduce((sum, review) => sum + review.rating, 0) /
+          userReviews.length
+      : null;
   }
 
   get criticAverageRating(): number | null {
     if (!this.movie?.reviews?.length) {
       return null;
     }
-    const criticReviews = this.movie.reviews.filter(r => r.reviewerType === 'critic');
-    return criticReviews.length ? criticReviews.reduce((sum, review) => sum + review.rating, 0) / criticReviews.length : null;
+    const criticReviews = this.movie.reviews.filter(
+      (r) => r.reviewerType === 'critic',
+    );
+    return criticReviews.length
+      ? criticReviews.reduce((sum, review) => sum + review.rating, 0) /
+          criticReviews.length
+      : null;
   }
 
   get userReviewCount(): number {
-    return this.movie?.reviews.filter(r => r.reviewerType === 'user').length || 0;
+    return (
+      this.movie?.reviews.filter((r) => r.reviewerType === 'user').length || 0
+    );
   }
 
   get criticReviewCount(): number {
-    return this.movie?.reviews.filter(r => r.reviewerType === 'critic').length || 0;
+    return (
+      this.movie?.reviews.filter((r) => r.reviewerType === 'critic').length || 0
+    );
   }
 
   submitReview() {
@@ -121,25 +165,14 @@ export class MovieDetailPage implements OnInit {
       return;
     }
 
-    const newReview = {
-      id: Date.now(),
-      author: MOCK_USER_PROFILE.name || 'Usuario',
-      avatar: '',
-      rating: this.selectedRating,
-      comment: text,
-      date: new Date().toISOString().slice(0,10),
-      reviewerType: 'user' as const
-    };
-
-    if (this.movie) {
-      this.movie.reviews = this.movie.reviews || [];
-      this.movie.reviews.unshift(newReview as any);
-      this.userActivity.recordWatchedMovie(this.movie, this.selectedRating);
-    }
-
+    // this.userActivity.recordWatchedMovie(this.movie, this.selectedRating);
+    this.pelisApi.setComment(this.movie!.id, text, this.selectedRating);
+    alert('Reseña enviada');
     this.reviewText = '';
     this.selectedRating = 5;
-    alert('Reseña enviada (demo)');
+    this.pelisApi.getComments(this.movie!.id).then((reviews) => {
+      this.movie!.reviews = reviews || [];
+    });
   }
 
   isReviewOwner(review: Review) {
@@ -164,7 +197,7 @@ export class MovieDetailPage implements OnInit {
     }
     review.comment = trimmed;
     review.rating = this.editingRating;
-    review.date = new Date().toISOString().slice(0,10);
+    review.date = new Date().toISOString().slice(0, 10);
     this.editingReviewId = null;
   }
 
@@ -172,7 +205,7 @@ export class MovieDetailPage implements OnInit {
     if (!this.movie) {
       return;
     }
-    this.movie.reviews = this.movie.reviews.filter(r => r.id !== reviewId);
+    this.movie.reviews = this.movie.reviews.filter((r) => r.id !== reviewId);
     if (this.editingReviewId === reviewId) {
       this.cancelEditing();
     }

@@ -37,14 +37,28 @@ export default class PelisApi {
 
   formatDate(data: any) {
     const id = Number(data.id ?? data.tmdb_id ?? 0);
-    const title = data.titulo || data.title || data.original_title || 'Sin título';
-    const rating = Number(data.puntuacion_tmdb ?? data.rating ?? data.vote_average ?? 0);
-    const genre = this.normalizeGenre(
-      data.genero || data.genre || data.generos || data.genre_names || data.genres || 'Sin género',
+    const title =
+      data.titulo || data.title || data.original_title || 'Sin título';
+    const rating = Number(
+      data.puntuacion_tmdb ?? data.rating ?? data.vote_average ?? 0,
     );
-    const releaseDate = this.formatYear(data.fecha_lanzamiento || data.releaseDate || data.release_date || '');
+    const genre = this.normalizeGenre(
+      data.genero ||
+        data.genre ||
+        data.generos ||
+        data.genre_names ||
+        data.genres ||
+        'Sin género',
+    );
+    const releaseDate = this.formatYear(
+      data.fecha_lanzamiento || data.releaseDate || data.release_date || '',
+    );
     const poster = data.poster_url || data.poster || data.poster_path || '';
-    const synopsis = data.sinopsis || data.synopsis || data.overview || 'Sin sinopsis disponible.';
+    const synopsis =
+      data.sinopsis ||
+      data.synopsis ||
+      data.overview ||
+      'Sin sinopsis disponible.';
     const actors = Array.isArray(data.actors) ? data.actors : [];
     const images = Array.isArray(data.images) ? data.images : [];
     const userRating = data.userRating ?? undefined;
@@ -75,6 +89,24 @@ export default class PelisApi {
     return list.map((movie: any) => this.formatDate(movie));
   }
 
+  async getMovieById(id: number) {
+    try {
+      const response = await fetch(`${this.apiUrl}/movies/${id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch movie by ID');
+      }
+      const payload = await response.json();
+      const data = payload?.data;
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
+        return this.formatDate(data);
+      }
+      throw new Error('Invalid movie data format');
+    } catch (error) {
+      console.error('Error fetching movie by ID:', error);
+      throw new Error('Failed to fetch movie by ID');
+    }
+  }
+
   async getGenres() {
     try {
       const response = await fetch(`${this.apiUrl}/generos`);
@@ -89,11 +121,53 @@ export default class PelisApi {
           .filter((item) => item && item !== 'Sin género');
       }
       if (Array.isArray(data)) {
-        return data.map((item: any) => this.normalizeGenre(item)).filter((item) => item && item !== 'Sin género');
+        return data
+          .map((item: any) => this.normalizeGenre(item))
+          .filter((item) => item && item !== 'Sin género');
       }
     } catch {
       return [];
     }
     return [];
+  }
+
+  // Comentarios
+
+  async getComments(movieId: number) {
+    try {
+      const response = await fetch(`${this.apiUrl}/comments/${movieId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch comments');
+      }
+      const payload = await response.json();
+      const data = payload?.data;
+      return data && Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      throw new Error('Failed to fetch comments');
+    }
+  }
+
+  async setComment(movieId: number, comment: string, rating: number) {
+    try {
+      const response = await fetch(`${this.apiUrl}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          contenidoId: movieId,
+          comentario: comment,
+          puntuacion: rating,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to set comment');
+      }
+    } catch (error) {
+      console.error('Error setting comment:', error);
+      throw new Error('Failed to set comment');
+    }
   }
 }

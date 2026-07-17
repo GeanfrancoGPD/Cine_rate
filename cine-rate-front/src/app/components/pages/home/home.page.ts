@@ -2,7 +2,6 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonContent,
-  IonIcon,
   IonSearchbar,
   IonSelect,
   IonSelectOption,
@@ -70,9 +69,10 @@ export class HomePage implements OnInit {
     ]);
 
     this.popularMovies = movies;
-    this.genres = genresFromApi.length > 0
-      ? genresFromApi
-      : this.extractGenresFromMovies(this.popularMovies);
+    this.genres =
+      genresFromApi.length > 0
+        ? genresFromApi
+        : this.extractGenresFromMovies(this.popularMovies);
     this.applyFilters();
   }
 
@@ -85,7 +85,9 @@ export class HomePage implements OnInit {
         .filter(Boolean)
         .forEach((genre) => set.add(genre));
     });
-    return Array.from(set).filter((genre) => genre && genre !== 'Sin género').slice(0, 12);
+    return Array.from(set)
+      .filter((genre) => genre && genre !== 'Sin género')
+      .slice(0, 12);
   }
 
   onTabChange(tab: 'home' | 'activity' | 'profile') {
@@ -99,7 +101,7 @@ export class HomePage implements OnInit {
   }
 
   goToMovieDetail(movie: Movie) {
-    this.router.navigate(['/movie', movie.id]);
+    this.router.navigate(['/movie', movie.id], { state: { movie } });
   }
 
   selectGenre(genre: string) {

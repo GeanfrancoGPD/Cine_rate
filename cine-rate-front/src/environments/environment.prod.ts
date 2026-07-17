@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://localhost:5000/api/pelis'
+  apiUrl: 'https://cine-rate-3yph.onrender.com/api/pelis',
 };
