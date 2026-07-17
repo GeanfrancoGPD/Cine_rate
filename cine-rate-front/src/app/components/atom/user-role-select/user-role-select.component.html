@@ -1,0 +1,6 @@
+<label class="role-picker">
+  <span class="role-label">{{ label }}</span>
+  <select [disabled]="disabled" [value]="value" (change)="onChange($event)">
+    <option *ngFor="let role of roles" [value]="role.value">{{ role.label }}</option>
+  </select>
+</label>

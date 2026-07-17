@@ -34,6 +34,13 @@ export default class PelisRepository {
     });
   }
 
+  async updateUserRole(usuarioId, tipo) {
+    return await this.db.excecuteNameQuery("updateUserRole", {
+      id: usuarioId,
+      tipo,
+    });
+  }
+
   async updatePassword(usuarioId, newPasswordHash) {
     return await this.db.excecuteNameQuery("updatePassword", {
       password_hash: newPasswordHash,
@@ -42,7 +49,7 @@ export default class PelisRepository {
   }
 
   async getAllUsers() {
-    return await this.db.excecuteNameQuery("getAllUsers", {});
+    return await this.db.excecuteNameQuery("getUsers", {});
   }
 
   async getPopularMovies() {

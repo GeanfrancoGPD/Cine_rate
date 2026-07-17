@@ -1,0 +1,7 @@
+<div class="users-page">
+  <div class="users-page-header">
+    <h2>Administración</h2>
+    <p>Solo los usuarios con rol de administrador pueden ver este panel.</p>
+  </div>
+  <app-user-admin-list [users]="users" [loading]="loading" (roleChange)="onRoleChange($event)"></app-user-admin-list>
+</div>

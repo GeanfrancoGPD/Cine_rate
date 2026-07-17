@@ -326,12 +326,51 @@ export default class PelisBO {
 
   async getAllUsers(req, res) {
     try {
+      const currentUser = req.session?.user;
+      if (!currentUser || String(currentUser.tipo || '').toUpperCase() !== 'ADMIN') {
+        return res.status(403).json({
+          success: false,
+          message: "Solo el administrador puede ver la lista de usuarios",
+        });
+      }
+
       const data = await this.repository.getAllUsers();
       return res.json({ success: true, data: data ?? [] });
     } catch (error) {
       return res.status(500).json({
         success: false,
         message: "No se pudieron cargar los usuarios",
+      });
+    }
+  }
+
+  async updateUserRole(req, res) {
+    try {
+      const currentUser = req.session?.user;
+      if (!currentUser || String(currentUser.tipo || '').toUpperCase() !== 'ADMIN') {
+        return res.status(403).json({
+          success: false,
+          message: "Solo el administrador puede cambiar roles",
+        });
+      }
+
+      const usuarioId = Number(req.params?.id);
+      const { tipo } = req.body || {};
+      const normalizedTipo = String(tipo || '').trim().toUpperCase();
+
+      if (!usuarioId || !['USUARIO', 'CRITICO'].includes(normalizedTipo)) {
+        return res.status(400).json({
+          success: false,
+          message: "Rol inválido",
+        });
+      }
+
+      const data = await this.repository.updateUserRole(usuarioId, normalizedTipo);
+      return res.json({ success: true, data });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "No se pudo actualizar el rol del usuario",
       });
     }
   }

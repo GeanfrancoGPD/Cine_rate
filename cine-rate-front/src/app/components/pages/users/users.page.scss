@@ -1,0 +1,21 @@
+.users-page {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.users-page-header {
+  padding: 12px 0 2px;
+}
+
+.users-page-header h2 {
+  margin: 0;
+  color: #dae2fd;
+  font-size: 20px;
+}
+
+.users-page-header p {
+  margin: 4px 0 0;
+  color: #94a3b8;
+  font-size: 13px;
+}

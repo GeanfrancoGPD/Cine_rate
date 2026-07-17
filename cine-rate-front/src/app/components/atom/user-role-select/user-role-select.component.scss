@@ -1,0 +1,24 @@
+.role-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e2e8f0;
+  font-size: 13px;
+}
+
+.role-label {
+  color: #94a3b8;
+}
+
+select {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8fafc;
+  padding: 8px 12px;
+  min-width: 116px;
+}
+
+select:disabled {
+  opacity: 0.6;
+}

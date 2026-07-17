@@ -29,8 +29,12 @@ router.delete("/user", authMiddleware, async (req, res) => {
   await pelisBO.deleteUser(req, res);
 });
 
-router.get("/users", async (req, res) => {
+router.get("/users", authMiddleware, async (req, res) => {
   await pelisBO.getAllUsers(req, res);
+});
+
+router.put("/users/:id/role", authMiddleware, async (req, res) => {
+  await pelisBO.updateUserRole(req, res);
 });
 
 router.get("/auth-check", authMiddleware, async (req, res) => {
