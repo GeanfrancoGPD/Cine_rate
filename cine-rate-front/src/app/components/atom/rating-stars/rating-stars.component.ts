@@ -23,6 +23,14 @@ export class RatingStarsComponent {
     addIcons({ star, starHalf, starOutline });
   }
 
+  get normalizedRating(): number {
+    const value = Number(this.rating ?? 0);
+    if (!Number.isFinite(value)) {
+      return 0;
+    }
+    return value > this.max ? value / 2 : value;
+  }
+
   get stars(): number[] {
     return Array(this.max)
       .fill(0)
@@ -30,14 +38,14 @@ export class RatingStarsComponent {
   }
 
   get fullStars(): number {
-    return Math.floor(this.rating);
+    return Math.floor(this.normalizedRating);
   }
 
   get hasHalfStar(): boolean {
-    return this.rating % 1 >= 0.5;
+    return this.normalizedRating % 1 >= 0.5;
   }
 
   get emptyStars(): number {
-    return this.max - Math.ceil(this.rating);
+    return this.max - Math.ceil(this.normalizedRating);
   }
 }

@@ -1,12 +1,16 @@
 .rating-stars {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 2px;
   color: #94a3b8;
+  font-family: 'Inter', sans-serif;
+  line-height: 1;
 
   .star {
-    color: #94a3b8;
+    color: #64748b;
     font-size: 1em;
+    display: inline-flex;
+    align-items: center;
   }
 
   .star.filled,
@@ -15,10 +19,10 @@
   }
 
   .rating-text {
-    margin-left: 6px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.8em;
+    margin-left: 5px;
+    font-size: 0.82em;
     font-weight: 600;
     color: #dae2fd;
+    letter-spacing: 0.01em;
   }
 }

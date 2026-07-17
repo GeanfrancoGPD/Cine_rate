@@ -19,10 +19,11 @@
           <ion-label class="compact-label">Min. puntuación</ion-label>
           <ion-select interface="popover" [(ngModel)]="minRating" (ionChange)="setMinRating($event.detail.value)">
             <ion-select-option [value]="0">Cualquiera</ion-select-option>
+            <ion-select-option [value]="1">>= 1</ion-select-option>
+            <ion-select-option [value]="2">>= 2</ion-select-option>
+            <ion-select-option [value]="3">>= 3</ion-select-option>
+            <ion-select-option [value]="4">>= 4</ion-select-option>
             <ion-select-option [value]="5">>= 5</ion-select-option>
-            <ion-select-option [value]="6">>= 6</ion-select-option>
-            <ion-select-option [value]="7">>= 7</ion-select-option>
-            <ion-select-option [value]="8">>= 8</ion-select-option>
           </ion-select>
         </ion-item>
 

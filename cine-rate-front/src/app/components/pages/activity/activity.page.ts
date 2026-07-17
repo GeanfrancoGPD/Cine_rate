@@ -45,9 +45,7 @@ export class ActivityPage implements OnInit {
 
   ngOnInit() {
     this.watchedMovies = this.userActivity.getWatchedMovies();
-    const set = new Set<string>();
-    this.watchedMovies.forEach(m => set.add(m.genre || ''));
-    this.genres = Array.from(set).filter(g => g).slice(0, 12);
+    this.genres = this.getGenresFromMovies(this.watchedMovies);
     this.applyFilters();
   }
 
@@ -83,20 +81,76 @@ export class ActivityPage implements OnInit {
     this.applyFilters();
   }
 
+  private normalizeGenre(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+  }
+
+  private formatGenreLabel(value: string): string {
+    const normalized = this.normalizeGenre(value);
+    if (!normalized) {
+      return '';
+    }
+    return normalized
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+
+  private parseGenres(value: string | null | undefined): string[] {
+    return String(value || '')
+      .split(/[\/,|]+/)
+      .map((genre) => this.normalizeGenre(genre))
+      .filter(Boolean);
+  }
+
+  private getGenresFromMovies(movies: Movie[]): string[] {
+    const set = new Set<string>();
+    movies.forEach((movie) => {
+      this.parseGenres(movie.genre).forEach((genre) => {
+        const label = this.formatGenreLabel(genre);
+        if (label && label !== 'Sin Genero') {
+          set.add(label);
+        }
+      });
+    });
+    return Array.from(set).slice(0, 12);
+  }
+
+  private matchesGenre(movie: Movie, selectedGenre: string): boolean {
+    const normalizedSelectedGenre = this.normalizeGenre(selectedGenre);
+    if (!normalizedSelectedGenre) {
+      return true;
+    }
+    return this.parseGenres(movie.genre).includes(normalizedSelectedGenre);
+  }
+
+  private getDisplayRating(value: number | string | null | undefined): number {
+    const parsed = Number(value ?? 0);
+    if (!Number.isFinite(parsed)) {
+      return 0;
+    }
+    return parsed > 5 ? parsed / 2 : parsed;
+  }
+
   private applyFilters() {
     const term = this.searchTerm.trim().toLowerCase();
     let list = this.watchedMovies.slice();
     if (this.activeGenre) {
-      list = list.filter(m => (m.genre || '').toLowerCase() === this.activeGenre.toLowerCase());
+      list = list.filter(m => this.matchesGenre(m, this.activeGenre));
     }
     if (term) {
       list = list.filter(m => (m.title || '').toLowerCase().includes(term));
     }
     if (this.minRating && this.minRating > 0) {
-      list = list.filter(m => (m.rating || 0) >= this.minRating);
+      list = list.filter(m => this.getDisplayRating(m.rating) >= this.minRating);
     }
     if (this.sortBy === 'rating') {
-      list.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      list.sort((a, b) => this.getDisplayRating(b.rating) - this.getDisplayRating(a.rating));
     } else {
       const parseYear = (value?: string) => {
         const match = String(value || '').match(/(\d{4})/);

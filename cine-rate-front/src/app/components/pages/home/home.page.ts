@@ -79,13 +79,34 @@ export class HomePage implements OnInit {
   private extractGenresFromMovies(movies: Movie[]): string[] {
     const set = new Set<string>();
     movies.forEach((movie) => {
-      String(movie.genre || '')
-        .split(',')
-        .map((genre) => genre.trim())
-        .filter(Boolean)
-        .forEach((genre) => set.add(genre));
+      this.parseGenres(movie.genre).forEach((genre) => set.add(genre));
     });
-    return Array.from(set).filter((genre) => genre && genre !== 'Sin género').slice(0, 12);
+    return Array.from(set)
+      .filter((genre) => genre && genre !== 'sin género')
+      .slice(0, 12);
+  }
+
+  private parseGenres(value: string | null | undefined): string[] {
+    return String(value || '')
+      .split(/[\/,|]+/)
+      .map((genre) => this.normalizeGenre(genre))
+      .filter(Boolean);
+  }
+
+  private normalizeGenre(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+  }
+
+  private matchesGenre(movie: Movie, selectedGenre: string): boolean {
+    const normalizedSelectedGenre = this.normalizeGenre(selectedGenre);
+    if (!normalizedSelectedGenre) {
+      return true;
+    }
+    return this.parseGenres(movie.genre).includes(normalizedSelectedGenre);
   }
 
   onTabChange(tab: 'home' | 'activity' | 'profile') {
@@ -122,22 +143,28 @@ export class HomePage implements OnInit {
     this.applyFilters();
   }
 
+  private getDisplayRating(value: number | string | null | undefined): number {
+    const parsed = Number(value ?? 0);
+    if (!Number.isFinite(parsed)) {
+      return 0;
+    }
+    return parsed > 5 ? parsed / 2 : parsed;
+  }
+
   private applyFilters() {
     const term = this.searchTerm.trim().toLowerCase();
     let list = this.popularMovies.slice();
     if (this.activeGenre) {
-      list = list.filter(
-        (m) => (m.genre || '').toLowerCase() === this.activeGenre.toLowerCase(),
-      );
+      list = list.filter((m) => this.matchesGenre(m, this.activeGenre));
     }
     if (term) {
       list = list.filter((m) => (m.title || '').toLowerCase().includes(term));
     }
     if (this.minRating && this.minRating > 0) {
-      list = list.filter((m) => (m.rating || 0) >= this.minRating);
+      list = list.filter((m) => this.getDisplayRating(m.rating) >= this.minRating);
     }
     if (this.sortBy === 'rating') {
-      list.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      list.sort((a, b) => this.getDisplayRating(b.rating) - this.getDisplayRating(a.rating));
     } else {
       // parse date loosely by numbers inside string (best-effort)
       list.sort((a, b) => {

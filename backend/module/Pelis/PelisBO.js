@@ -366,6 +366,11 @@ export default class PelisBO {
       }
 
       const data = await this.repository.updateUserRole(usuarioId, normalizedTipo);
+
+      if (req.session?.user && Number(req.session.user.id) === usuarioId) {
+        req.session.user.tipo = normalizedTipo;
+      }
+
       return res.json({ success: true, data });
     } catch (error) {
       return res.status(500).json({
