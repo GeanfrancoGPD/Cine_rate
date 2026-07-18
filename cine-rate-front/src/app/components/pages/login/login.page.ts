@@ -10,6 +10,17 @@ import { ModeSelectorComponent } from '../../molecules/mode-selector/mode-select
 import { AuthFormComponent } from '../../molecules/auth-form/auth-form.component';
 import { TermsFooterComponent } from '../../molecules/terms-footer/terms-footer.component';
 
+import { addIcons } from 'ionicons';
+import {
+  arrowForwardOutline,
+  lockClosedOutline,
+  eyeOutline,
+  filmOutline,
+  mailOutline,
+  personOutline,
+  personAddOutline,
+} from 'ionicons/icons';
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -31,13 +42,26 @@ export class LoginPage {
     private readonly toastCtrl: ToastController,
     private readonly router: Router,
     private readonly http: HttpClient,
-  ) {}
+  ) {
+    addIcons({
+      arrowForwardOutline,
+      lockClosedOutline,
+      eyeOutline,
+      filmOutline,
+      mailOutline,
+      personOutline,
+      personAddOutline,
+    });
+  }
 
   onModeChange(newMode: 'login' | 'register') {
     this.mode = newMode;
   }
 
-  private async showToast(message: string, color: 'success' | 'danger' | 'primary' | 'medium' = 'danger') {
+  private async showToast(
+    message: string,
+    color: 'success' | 'danger' | 'primary' | 'medium' = 'danger',
+  ) {
     const toast = await this.toastCtrl.create({
       message,
       duration: 1800,
@@ -48,24 +72,31 @@ export class LoginPage {
   }
 
   async handleSubmit(credentials: any) {
-    const payload = this.mode === 'login'
-      ? {
-          gmail: credentials?.gmail ?? credentials?.email,
-          password: credentials?.password,
-        }
-      : {
-          nombre: credentials?.nombre ?? credentials?.name,
-          gmail: credentials?.gmail ?? credentials?.email,
-          password: credentials?.password,
-        };
+    const payload =
+      this.mode === 'login'
+        ? {
+            gmail: credentials?.gmail ?? credentials?.email,
+            password: credentials?.password,
+          }
+        : {
+            nombre: credentials?.nombre ?? credentials?.name,
+            gmail: credentials?.gmail ?? credentials?.email,
+            password: credentials?.password,
+          };
 
     if (this.mode === 'login' && (!payload.gmail || !payload.password)) {
       await this.showToast('Completa tu correo y contraseña.', 'danger');
       return;
     }
 
-    if (this.mode === 'register' && (!payload.nombre || !payload.gmail || !payload.password)) {
-      await this.showToast('Completa tu nombre, correo y contraseña.', 'danger');
+    if (
+      this.mode === 'register' &&
+      (!payload.nombre || !payload.gmail || !payload.password)
+    ) {
+      await this.showToast(
+        'Completa tu nombre, correo y contraseña.',
+        'danger',
+      );
       return;
     }
 
@@ -73,12 +104,17 @@ export class LoginPage {
 
     try {
       const response: any = await lastValueFrom(
-        this.http.post(`${environment.apiUrl}${endpoint}`, payload, { withCredentials: true })
+        this.http.post(`${environment.apiUrl}${endpoint}`, payload, {
+          withCredentials: true,
+        }),
       );
 
       if (response?.success) {
         await this.showToast(
-          response.message || (this.mode === 'login' ? '✅ ¡Bienvenido a CineRate!' : '🎉 ¡Cuenta creada exitosamente!'),
+          response.message ||
+            (this.mode === 'login'
+              ? '✅ ¡Bienvenido a CineRate!'
+              : '🎉 ¡Cuenta creada exitosamente!'),
           'success',
         );
 
@@ -90,10 +126,16 @@ export class LoginPage {
           }, 800);
         }
       } else {
-        await this.showToast(response?.message || 'No se pudo completar la solicitud.', 'danger');
+        await this.showToast(
+          response?.message || 'No se pudo completar la solicitud.',
+          'danger',
+        );
       }
     } catch (error: any) {
-      const message = error?.error?.message || error?.message || 'No se pudo completar la solicitud.';
+      const message =
+        error?.error?.message ||
+        error?.message ||
+        'No se pudo completar la solicitud.';
       await this.showToast(message, 'danger');
     }
   }

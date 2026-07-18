@@ -5,6 +5,12 @@
     "orderArray": []
   },
 
+  "getAllUsers": {
+    "query": "SELECT id, nombre, email, tipo, fecha_creacion FROM usuarios ORDER BY id",
+    "structure_params": {},
+    "orderArray": []
+  },
+
   "getUser": {
     "query": "SELECT id, nombre, email, password_hash, tipo FROM usuarios WHERE email = $1",
     "structure_params": {
@@ -41,6 +47,15 @@
       "id": "number"
     },
     "orderArray": ["nombre", "email", "tipo", "id"]
+  },
+
+  "updateUserRole": {
+    "query": "UPDATE usuarios SET tipo = $1 WHERE id = $2 RETURNING id, nombre, email, tipo",
+    "structure_params": {
+      "tipo": "string",
+      "id": "number"
+    },
+    "orderArray": ["tipo", "id"]
   },
 
   "updatePassword": {

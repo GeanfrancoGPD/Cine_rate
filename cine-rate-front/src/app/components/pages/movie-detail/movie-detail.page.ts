@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { IonContent, IonIcon, IonButton } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router } from '@angular/router';
 // import { TopBarComponent } from '../../molecules/top-bar/top-bar.component';
@@ -10,6 +11,8 @@ import { Movie, MOCK_USER_PROFILE, Review } from '../../../data/mock-data';
 import { FormsModule } from '@angular/forms';
 import services from '../../../services/pelis-api';
 import UserActivityService from '../../../services/user-activity.service';
+import { lastValueFrom } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 import { addIcons } from 'ionicons';
 import { arrowBackOutline, personCircleOutline } from 'ionicons/icons';
@@ -32,10 +35,12 @@ import { arrowBackOutline, personCircleOutline } from 'ionicons/icons';
 export class MovieDetailPage implements OnInit {
   private readonly pelisApi = inject(services);
   private readonly userActivity = inject(UserActivityService);
+  private readonly http = inject(HttpClient);
   movie?: Movie;
   selectedRating = 5;
   reviewText = '';
   currentUser = MOCK_USER_PROFILE.name;
+  currentUserRole: 'user' | 'critic' = 'user';
   editingReviewId: number | null = null;
   editingText = '';
   editingRating = 5;
@@ -53,6 +58,8 @@ export class MovieDetailPage implements OnInit {
 
   async ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
+
+    await this.loadCurrentUserRole();
 
     try {
       if (!this.movie) {
@@ -88,6 +95,8 @@ export class MovieDetailPage implements OnInit {
         error,
       );
     }
+
+    this.reclassifyCurrentUserReviews();
   }
 
   onSearch(term: string) {
@@ -117,29 +126,33 @@ export class MovieDetailPage implements OnInit {
   }
 
   get userAverageRating(): number | null {
-    if (!this.movie?.reviews?.length) {
+    const reviews = this.movie?.reviews ?? [];
+    const userReviews = reviews.filter(
+      (review) => review.reviewerType === 'user',
+    );
+    if (!userReviews.length) {
       return null;
     }
-    const userReviews = this.movie.reviews.filter(
-      (r) => r.reviewerType === 'user',
-    );
-    return userReviews.length
-      ? userReviews.reduce((sum, review) => sum + review.rating, 0) /
-          userReviews.length
-      : null;
+    const average =
+      userReviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) /
+      userReviews.length;
+    return Number(average.toFixed(1));
   }
 
   get criticAverageRating(): number | null {
-    if (!this.movie?.reviews?.length) {
+    const reviews = this.movie?.reviews ?? [];
+    const criticReviews = reviews.filter(
+      (review) => review.reviewerType === 'critic',
+    );
+    if (!criticReviews.length) {
       return null;
     }
-    const criticReviews = this.movie.reviews.filter(
-      (r) => r.reviewerType === 'critic',
-    );
-    return criticReviews.length
-      ? criticReviews.reduce((sum, review) => sum + review.rating, 0) /
-          criticReviews.length
-      : null;
+    const average =
+      criticReviews.reduce(
+        (sum, review) => sum + Number(review.rating || 0),
+        0,
+      ) / criticReviews.length;
+    return Number(average.toFixed(1));
   }
 
   get userReviewCount(): number {
@@ -165,13 +178,62 @@ export class MovieDetailPage implements OnInit {
       return;
     }
 
-    // this.userActivity.recordWatchedMovie(this.movie, this.selectedRating);
-    this.pelisApi.setComment(this.movie!.id, text, this.selectedRating);
-    alert('Reseña enviada');
+    const reviewerType = this.currentUserRole === 'critic' ? 'critic' : 'user';
+    const newReview = {
+      id: Date.now(),
+      author: this.currentUser || MOCK_USER_PROFILE.name || 'Usuario',
+      avatar: '',
+      rating: this.selectedRating,
+      comment: text,
+      date: new Date().toISOString().slice(0, 10),
+      reviewerType,
+    };
+
+    if (this.movie) {
+      this.movie.reviews = this.movie.reviews || [];
+      this.movie.reviews.unshift(newReview as any);
+      this.userActivity.recordWatchedMovie(this.movie, this.selectedRating);
+    }
+
     this.reviewText = '';
     this.selectedRating = 5;
     this.pelisApi.getComments(this.movie!.id).then((reviews) => {
       this.movie!.reviews = reviews || [];
+    });
+  }
+
+  private async loadCurrentUserRole() {
+    try {
+      const response: any = await lastValueFrom(
+        this.http.get(`${environment.apiUrl}/auth-check`, {
+          withCredentials: true,
+        }),
+      );
+
+      if (response?.success && response?.user) {
+        this.currentUser =
+          response.user.nombre || response.user.email || this.currentUser;
+        const tipo = String(response.user.tipo || '')
+          .trim()
+          .toUpperCase();
+        this.currentUserRole = tipo === 'CRITICO' ? 'critic' : 'user';
+      }
+    } catch {
+      this.currentUserRole = 'user';
+    }
+  }
+
+  private reclassifyCurrentUserReviews() {
+    if (!this.movie?.reviews?.length) {
+      return;
+    }
+
+    const reviewerType = this.currentUserRole === 'critic' ? 'critic' : 'user';
+    this.movie.reviews = this.movie.reviews.map((review) => {
+      if (review.author === this.currentUser) {
+        return { ...review, reviewerType };
+      }
+      return review;
     });
   }
 

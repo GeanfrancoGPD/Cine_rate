@@ -36,7 +36,7 @@
       [vistas]="user.vistas"
     ></app-profile-stats>
 
-    <div class="comments-section">
+    <div class="comments-section" *ngIf="!isAdmin">
       <h3>Mis Comentarios</h3>
       <div class="comments-list">
         <div class="profile-comment-wrapper" *ngFor="let comment of user.comments">
@@ -60,6 +60,13 @@
         </div>
       </div>
     </div>
+
+    <app-user-admin-list
+      *ngIf="isAdmin"
+      [users]="adminUsers"
+      [loading]="adminLoading"
+      (roleChange)="onAdminRoleChange($event)"
+    ></app-user-admin-list>
   </div>
 
   <app-bottom-nav (tabChange)="onTabChange($event)"></app-bottom-nav>

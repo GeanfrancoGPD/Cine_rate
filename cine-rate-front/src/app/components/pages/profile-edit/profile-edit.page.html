@@ -1,25 +1,42 @@
-<ion-content>
-  <div class="edit-container">
-    <h2>Editar Perfil</h2>
+<ion-content class="profile-edit-page">
+  <div class="edit-shell">
+    <div class="edit-card">
+      <div class="edit-header">
+        <div class="avatar-badge">✎</div>
+        <div>
+          <h2>Editar perfil</h2>
+          <p>Actualiza tus datos de acceso y tu información personal.</p>
+        </div>
+      </div>
 
-    <div class="field">
-      <label>Nombre</label>
-      <ion-input [(ngModel)]="user.name" placeholder="Nombre"></ion-input>
-    </div>
+      <div class="section-card">
+        <div class="section-title">Información personal</div>
 
-    <div class="field">
-      <label>Email</label>
-      <ion-input [(ngModel)]="user.email" placeholder="Email"></ion-input>
-    </div>
+        <div class="field">
+          <label>Nombre</label>
+          <ion-input [(ngModel)]="user.name" placeholder="Nombre" fill="outline" shape="round"></ion-input>
+        </div>
 
-    <div class="field">
-      <label>Contraseña</label>
-      <ion-input type="password" [(ngModel)]="user.password" placeholder="Contraseña"></ion-input>
-    </div>
+        <div class="field">
+          <label>Email</label>
+          <ion-input [(ngModel)]="user.email" type="email" placeholder="Email" fill="outline" shape="round"></ion-input>
+        </div>
+      </div>
 
-    <div class="actions">
-      <ion-button fill="clear" (click)="cancel()">Cancelar</ion-button>
-      <ion-button (click)="save()">Guardar</ion-button>
+      <div class="section-card">
+        <div class="section-title">Seguridad</div>
+
+        <div class="field">
+          <label>Contraseña</label>
+          <ion-input type="password" [(ngModel)]="user.password" placeholder="Nueva contraseña" fill="outline" shape="round"></ion-input>
+          <small>Deja este campo vacío si no deseas cambiarla.</small>
+        </div>
+      </div>
+
+      <div class="actions">
+        <ion-button fill="outline" color="medium" (click)="cancel()">Cancelar</ion-button>
+        <ion-button (click)="save()">Guardar cambios</ion-button>
+      </div>
     </div>
   </div>
 </ion-content>

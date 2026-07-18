@@ -1,0 +1,31 @@
+<div class="admin-panel">
+  <div class="admin-panel-header">
+    <div>
+      <h3>Gestión de usuarios</h3>
+      <p>Cambia el tipo de cualquier usuario entre Usuario y Crítico.</p>
+    </div>
+    <span class="status" *ngIf="loading">Actualizando…</span>
+  </div>
+
+  <div class="user-list" *ngIf="users.length; else emptyState">
+    <div class="user-item" *ngFor="let user of users; trackBy: trackByUserId">
+      <div class="user-info">
+        <strong>{{ user.nombre }}</strong>
+        <span>{{ user.email }}</span>
+      </div>
+      <div class="user-action">
+        <span class="role-badge">{{ normalizeRole(user.tipo) }}</span>
+        <app-user-role-select
+          [value]="getRoleValue(user)"
+          [disabled]="user.tipo === 'ADMIN'"
+          [label]="''"
+          (roleChange)="handleRoleChange(user, $event)"
+        ></app-user-role-select>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #emptyState>
+    <div class="empty-state">No hay usuarios para mostrar.</div>
+  </ng-template>
+</div>

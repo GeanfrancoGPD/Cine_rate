@@ -24,9 +24,16 @@
 
 .genres-section {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 16px;
+  overflow-x: auto;
+  padding: 6px 4px 8px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.genres-section::-webkit-scrollbar {
+  display: none;
 }
 
 .filters-row {

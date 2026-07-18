@@ -6,6 +6,7 @@ class Session {
       id: user[0].id,
       email: user[0].email,
       nombre: user[0].nombre,
+      tipo: String(user[0].tipo || '').trim().toUpperCase(),
     };
 
     console.log("Sesión creada:", sessionObject.request.session.user);
