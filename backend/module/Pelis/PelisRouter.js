@@ -82,6 +82,10 @@ router.get("/comments/:contenidoId", async (req, res) => {
   await pelisBO.getComentarios(req, res);
 });
 
+router.put("/comments/:id", authMiddleware, async (req, res) => {
+  await pelisBO.updateComentario(req, res);
+});
+
 router.delete("/comments/:id", authMiddleware, async (req, res) => {
   // Solo el autor o un admin debería poder borrar un comentario, aquí solo protegemos con auth
   await pelisBO.deleteComentario(req, res);

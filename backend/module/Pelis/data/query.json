@@ -143,7 +143,7 @@
   },
 
   "getComentariosByContenido": {
-    "query": "SELECT c.id, c.comentario, c.fecha_creacion, u.id AS usuario_id, u.nombre FROM comentarios c INNER JOIN usuarios u ON c.usuario_id = u.id WHERE c.contenido_id = $1 ORDER BY c.fecha_creacion DESC",
+    "query": "SELECT c.id, c.comentario, c.puntaje, c.fecha_creacion, u.id AS usuario_id, u.nombre FROM comentarios c INNER JOIN usuarios u ON c.usuario_id = u.id WHERE c.contenido_id = $1 ORDER BY c.fecha_creacion DESC",
     "structure_params": {
       "contenido_id": "number"
     },
@@ -159,22 +159,31 @@
   },
 
   "createComentario": {
-    "query": "INSERT INTO comentarios (usuario_id, contenido_id, comentario) VALUES ($1,$2,$3) RETURNING *",
+    "query": "INSERT INTO comentarios (usuario_id, contenido_id, tipo_usuario, puntaje, comentario) VALUES ($1, $2, $3, $4, $5) RETURNING *",
     "structure_params": {
       "usuario_id": "number",
       "contenido_id": "number",
+      "tipo_usuario": "string",
+      "puntaje": "number",
       "comentario": "string"
     },
-    "orderArray": ["usuario_id", "contenido_id", "comentario"]
+    "orderArray": [
+      "usuario_id",
+      "contenido_id",
+      "tipo_usuario",
+      "puntaje",
+      "comentario"
+    ]
   },
 
   "updateComentario": {
-    "query": "UPDATE comentarios SET comentario = $1 WHERE id = $2 RETURNING *",
+    "query": "UPDATE comentarios SET puntaje = $2, comentario = $3 WHERE id = $1 RETURNING *",
     "structure_params": {
-      "comentario": "string",
-      "id": "number"
+      "id": "number",
+      "puntaje": "number",
+      "comentario": "string"
     },
-    "orderArray": ["comentario", "id"]
+    "orderArray": ["id", "puntaje", "comentario"]
   },
 
   "deleteComentario": {

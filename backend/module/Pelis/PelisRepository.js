@@ -111,10 +111,18 @@ export default class PelisRepository {
   }
 
   // Comentarios
-  async createComentario(usuario_id, contenido_id, comentario) {
+  async createComentario(
+    usuario_id,
+    contenido_id,
+    tipo_usuario,
+    puntaje,
+    comentario,
+  ) {
     return await this.db.excecuteNameQuery("createComentario", {
       usuario_id,
       contenido_id,
+      tipo_usuario,
+      puntaje,
       comentario,
     });
   }
@@ -122,6 +130,14 @@ export default class PelisRepository {
   async getComentariosByContenido(contenido_id) {
     return await this.db.excecuteNameQuery("getComentariosByContenido", {
       contenido_id,
+    });
+  }
+
+  async updateComentario(id, puntaje, comentario) {
+    return await this.db.excecuteNameQuery("updateComentario", {
+      id,
+      puntaje,
+      comentario,
     });
   }
 

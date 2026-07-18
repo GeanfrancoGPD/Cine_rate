@@ -342,7 +342,10 @@ export default class PelisBO {
   async getAllUsers(req, res) {
     try {
       const currentUser = req.session?.user;
-      if (!currentUser || String(currentUser.tipo || '').toUpperCase() !== 'ADMIN') {
+      if (
+        !currentUser ||
+        String(currentUser.tipo || "").toUpperCase() !== "ADMIN"
+      ) {
         return res.status(403).json({
           success: false,
           message: "Solo el administrador puede ver la lista de usuarios",
@@ -362,7 +365,10 @@ export default class PelisBO {
   async updateUserRole(req, res) {
     try {
       const currentUser = req.session?.user;
-      if (!currentUser || String(currentUser.tipo || '').toUpperCase() !== 'ADMIN') {
+      if (
+        !currentUser ||
+        String(currentUser.tipo || "").toUpperCase() !== "ADMIN"
+      ) {
         return res.status(403).json({
           success: false,
           message: "Solo el administrador puede cambiar roles",
@@ -371,16 +377,21 @@ export default class PelisBO {
 
       const usuarioId = Number(req.params?.id);
       const { tipo } = req.body || {};
-      const normalizedTipo = String(tipo || '').trim().toUpperCase();
+      const normalizedTipo = String(tipo || "")
+        .trim()
+        .toUpperCase();
 
-      if (!usuarioId || !['USUARIO', 'CRITICO'].includes(normalizedTipo)) {
+      if (!usuarioId || !["USUARIO", "CRITICO"].includes(normalizedTipo)) {
         return res.status(400).json({
           success: false,
           message: "Rol inválido",
         });
       }
 
-      const data = await this.repository.updateUserRole(usuarioId, normalizedTipo);
+      const data = await this.repository.updateUserRole(
+        usuarioId,
+        normalizedTipo,
+      );
 
       if (req.session?.user && Number(req.session.user.id) === usuarioId) {
         req.session.user.tipo = normalizedTipo;
@@ -764,34 +775,58 @@ export default class PelisBO {
   // ================== Comentarios ===================
   async addComentario(req, res) {
     try {
-      const usuarioId = await this.resolveUserId(req); // Aquí usarías resolveUserId
+      const usuarioId = await this.resolveUserId(req);
       if (!usuarioId) {
         return res.status(400).json({
           success: false,
-          message: "Debe tener session activa para agregar un comentario",
+          message: "Debe tener sesión activa para agregar un comentario",
         });
       }
-      const { contenidoId, comentario } = req.body;
 
-      if (!contenidoId || !comentario) {
+      const { contenidoId, comentario, puntaje } = req.body;
+      console.log("Usuario", req.session.user);
+      const tipoUsuario = req.session.user?.tipo || "usuario";
+
+      if (!contenidoId || puntaje === undefined) {
         return res.status(400).json({
           success: false,
-          message: "Datos incompletos para el comentario",
+          message:
+            "Datos incompletos: El ID del contenido y el puntaje son obligatorios",
+        });
+      }
+
+      if (puntaje < 0 || puntaje > 10) {
+        return res.status(400).json({
+          success: false,
+          message: "El puntaje debe estar entre 0.0 y 10.0",
         });
       }
 
       const nuevoComentario = await this.repository.createComentario(
         usuarioId,
         contenidoId,
-        comentario,
+        tipoUsuario.toLowerCase(),
+        puntaje,
+        comentario || null, // Si viene vacío, se guarda como NULL en la base de datos
       );
+
       return res.status(201).json({
         success: true,
-        message: "Comentario agregado",
+        message: "Reseña y calificación agregada con éxito",
         data: nuevoComentario,
       });
     } catch (error) {
       console.error("Error al agregar comentario:", error);
+
+      // Manejo específico por si el usuario intenta calificar dos veces el mismo contenido
+      if (error.code === "23505") {
+        // Código de error de Postgres para violación de restricción UNIQUE
+        return res.status(400).json({
+          success: false,
+          message: "Ya has calificado este contenido anteriormente",
+        });
+      }
+
       return res
         .status(500)
         .json({ success: false, message: "No se pudo agregar el comentario" });
@@ -815,6 +850,39 @@ export default class PelisBO {
       return res.status(500).json({
         success: false,
         message: "No se pudieron cargar los comentarios",
+      });
+    }
+  }
+
+  async updateComentario(req, res) {
+    try {
+      const { id } = req.params; // ID del comentario a actualizar
+      const { comentario, puntaje } = req.body;
+
+      if (!id) {
+        return res
+          .status(400)
+          .json({ success: false, message: "ID de comentario requerido" });
+      }
+
+      if (puntaje !== undefined && (puntaje < 0 || puntaje > 10)) {
+        return res.status(400).json({
+          success: false,
+          message: "El puntaje debe estar entre 0.0 y 10.0",
+        });
+      }
+
+      const updatedComentario = await this.repository.updateComentario(
+        id,
+        puntaje,
+        comentario || null,
+      );
+      return res.json({ success: true, data: updatedComentario });
+    } catch (error) {
+      console.error("Error al actualizar comentario:", error);
+      return res.status(500).json({
+        success: false,
+        message: "No se pudo actualizar el comentario",
       });
     }
   }
