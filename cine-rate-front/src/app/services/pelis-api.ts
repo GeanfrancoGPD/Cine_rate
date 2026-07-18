@@ -79,6 +79,21 @@ export default class PelisApi {
     };
   }
 
+  async searchMovie(nombre: string) {
+    const response = await fetch(
+      `${this.apiUrl}/search-movie?nombre=${encodeURIComponent(nombre)}`,
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to search movie');
+    }
+
+    const payload = await response.json();
+    const data = Array.isArray(payload?.data) ? payload.data : [];
+
+    return data.map((movie: any) => this.formatDate(movie));
+  }
+
   async getPopularMovies() {
     const response = await fetch(`${this.apiUrl}/popular-movies`);
     if (!response.ok) {

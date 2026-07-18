@@ -1,12 +1,13 @@
 <ion-content>
   <div class="home-bg"></div>
-  
+
   <!-- Top Bar -->
-  <app-top-bar (onSearch)="onSearch($event)"></app-top-bar>
+  <app-top-bar (onSearch)="onSearch($event)" (onSearchSubmit)="searchMovie()">
+  </app-top-bar>
 
   <!-- Contenido -->
   <div class="content">
-    <!-- Géneros en chips -->
+    <!-- Géneros -->
     <div class="genres-section">
       <app-genre-chip
         *ngFor="let genre of genres"
@@ -16,18 +17,25 @@
       ></app-genre-chip>
     </div>
 
-    <!-- Filtros y orden (Ionic controls para móvil) -->
+    <!-- Filtros -->
     <div class="filters-row">
-      <ion-searchbar *ngIf="!router.url.includes('/home')"
+      <ion-searchbar
+        *ngIf="!router.url.includes('/home')"
         placeholder="Buscar por título..."
         [(ngModel)]="searchTerm"
         (ionInput)="onSearch($event.detail.value)"
-      ></ion-searchbar>
+        (ionSearch)="searchMovie()"
+      >
+      </ion-searchbar>
 
       <div class="filter-controls">
         <ion-item lines="none" class="compact-item">
           <ion-label class="compact-label">Min. puntuación</ion-label>
-          <ion-select interface="popover" [(ngModel)]="minRating" (ionChange)="setMinRating($event.detail.value)">
+          <ion-select
+            interface="popover"
+            [(ngModel)]="minRating"
+            (ionChange)="setMinRating($event.detail.value)"
+          >
             <ion-select-option [value]="0">Cualquiera</ion-select-option>
             <ion-select-option [value]="1">>= 1</ion-select-option>
             <ion-select-option [value]="2">>= 2</ion-select-option>
@@ -39,7 +47,11 @@
 
         <ion-item lines="none" class="compact-item">
           <ion-label class="compact-label">Ordenar por</ion-label>
-          <ion-select interface="popover" [(ngModel)]="sortBy" (ionChange)="setSort($event.detail.value)">
+          <ion-select
+            interface="popover"
+            [(ngModel)]="sortBy"
+            (ionChange)="setSort($event.detail.value)"
+          >
             <ion-select-option value="rating">Puntuación</ion-select-option>
             <ion-select-option value="date">Fecha</ion-select-option>
           </ion-select>
@@ -47,17 +59,34 @@
       </div>
     </div>
 
-    <!-- Lista de películas -->
     <h2 class="section-title">Populares</h2>
-    <div class="movie-list">
+
+    <!-- Loading -->
+    <div
+      *ngIf="isSearching"
+      style="display: flex; justify-content: center; padding: 40px"
+    >
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+
+    <!-- No encontrada -->
+    <div
+      *ngIf="!isSearching && movieNotFound"
+      style="text-align: center; padding: 40px; color: #999; font-size: 18px"
+    >
+      Película no encontrada.
+    </div>
+
+    <!-- Películas -->
+    <div class="movie-list" *ngIf="!isSearching && !movieNotFound">
       <app-movie-card
         *ngFor="let movie of displayedMovies"
         [movie]="movie"
         (clickCard)="goToMovieDetail($event)"
-      ></app-movie-card>
+      >
+      </app-movie-card>
     </div>
   </div>
 
-  <!-- Bottom Navigation -->
   <app-bottom-nav (tabChange)="onTabChange($event)"></app-bottom-nav>
 </ion-content>

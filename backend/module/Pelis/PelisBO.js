@@ -564,7 +564,10 @@ export default class PelisBO {
               tipo: "PELICULA",
               titulo: item.title,
               sinopsis: item.overview,
-              fecha_lanzamiento: item.release_date,
+              fecha_lanzamiento:
+                item.release_date && item.release_date.trim() !== ""
+                  ? item.release_date
+                  : null,
               poster_url: item.poster_path
                 ? "https://image.tmdb.org/t/p/w780" + item.poster_path
                 : null,
@@ -577,6 +580,9 @@ export default class PelisBO {
             },
           ]);
 
+          if (!nuevoContenido || !nuevoContenido[0]?.[0]) {
+            continue;
+          }
           const contenidoId = nuevoContenido[0][0].id;
           const genreNames = this.buildGenreNames(item.genre_ids);
           for (const generoIdInterno of generoIdsInternos) {

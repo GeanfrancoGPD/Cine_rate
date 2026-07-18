@@ -7,6 +7,7 @@ import {
   IonSelectOption,
   IonItem,
   IonLabel,
+  IonSpinner,
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { TopBarComponent } from '../../molecules/top-bar/top-bar.component';
@@ -40,6 +41,7 @@ import {
     BottomNavComponent,
     MovieCardComponent,
     GenreChipComponent,
+    IonSpinner,
   ],
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
@@ -53,6 +55,8 @@ export class HomePage implements OnInit {
   minRating = 0;
   sortBy: 'rating' | 'date' = 'rating';
   displayedMovies: Movie[] = [];
+  isSearching = false;
+  movieNotFound = false;
 
   constructor(public router: Router) {
     addIcons({
@@ -130,7 +134,53 @@ export class HomePage implements OnInit {
 
   onSearch(term: string | null | undefined) {
     this.searchTerm = term ? String(term) : '';
-    this.applyFilters();
+
+    if (!this.searchTerm.trim()) {
+      this.movieNotFound = false;
+      this.displayedMovies = [...this.popularMovies];
+      this.applyFilters();
+    }
+  }
+
+  async searchMovie() {
+    const term = this.searchTerm.trim();
+
+    if (!term) {
+      this.movieNotFound = false;
+      this.applyFilters();
+      return;
+    }
+
+    this.movieNotFound = false;
+
+    // Buscar primero en memoria
+    const localResults = this.popularMovies.filter((movie) =>
+      movie.title.toLowerCase().includes(term.toLowerCase()),
+    );
+
+    if (localResults.length > 0) {
+      this.displayedMovies = localResults;
+      return;
+    }
+
+    // No estaba -> consultar backend
+    this.isSearching = true;
+
+    try {
+      const movies = await this.pelisApi.searchMovie(term);
+
+      if (movies.length > 0) {
+        this.displayedMovies = movies;
+      } else {
+        this.displayedMovies = [];
+        this.movieNotFound = true;
+      }
+    } catch (e) {
+      this.displayedMovies = [];
+      this.movieNotFound = true;
+    } finally {
+      this.isSearching = false;
+    }
   }
 
   setMinRating(v: number) {

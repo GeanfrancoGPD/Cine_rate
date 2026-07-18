@@ -21,6 +21,7 @@ import {
 })
 export class TopBarComponent {
   @Output() onSearch = new EventEmitter<string>();
+  @Output() onSearchSubmit = new EventEmitter<string>();
 
   constructor(public router: Router) {
     // 2. Registrar los íconos para que Ionic los renderice localmente

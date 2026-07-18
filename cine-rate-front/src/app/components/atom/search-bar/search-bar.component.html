@@ -1,9 +1,16 @@
 <div class="search-wrapper">
-  <ion-icon name="search-outline" class="search-icon"></ion-icon>
+  <ion-icon
+    name="search-outline"
+    class="search-icon"
+    (click)="onSearchSubmit.emit(searchTerm)"
+  ></ion-icon>
+
   <ion-input
     [(ngModel)]="searchTerm"
     placeholder="Buscar películas o actores..."
     class="search-input"
     (ionInput)="onSearch.emit(searchTerm)"
-  ></ion-input>
+    (keyup.enter)="onSearchSubmit.emit(searchTerm)"
+  >
+  </ion-input>
 </div>
