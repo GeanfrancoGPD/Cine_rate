@@ -143,7 +143,7 @@
   },
 
   "getComentariosByContenido": {
-    "query": "SELECT c.id, c.comentario, c.puntaje, c.fecha_creacion, u.id AS usuario_id, u.nombre FROM comentarios c INNER JOIN usuarios u ON c.usuario_id = u.id WHERE c.contenido_id = $1 ORDER BY c.fecha_creacion DESC",
+    "query": "SELECT c.id, c.comentario, c.puntaje, c.tipo_usuario, c.fecha_creacion, u.id AS usuario_id, u.nombre FROM comentarios c INNER JOIN usuarios u ON c.usuario_id = u.id WHERE c.contenido_id = $1 ORDER BY c.fecha_creacion DESC",
     "structure_params": {
       "contenido_id": "number"
     },
