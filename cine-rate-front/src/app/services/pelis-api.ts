@@ -148,7 +148,49 @@ export default class PelisApi {
     }
   }
 
-  async setComment(movieId: number, comment: string, rating: number) {
+  async updateComment(commentId: number, comment: string, rating: number) {
+    try {
+      const response = await fetch(`${this.apiUrl}/comments/${commentId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          comentario: comment,
+          puntaje: rating,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to update comment');
+      }
+    } catch (error) {
+      console.error('Error updating comment:', error);
+      throw new Error('Failed to update comment');
+    }
+  }
+
+  async deleteComment(commentId: number) {
+    try {
+      const response = await fetch(`${this.apiUrl}/comments/${commentId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete comment');
+      }
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      throw new Error('Failed to delete comment');
+    }
+  }
+
+  async setComment(
+    movieId: number,
+    comment: string,
+    rating: number,
+    tipo: string,
+  ) {
     try {
       const response = await fetch(`${this.apiUrl}/comments`, {
         method: 'POST',
@@ -158,8 +200,9 @@ export default class PelisApi {
         credentials: 'include',
         body: JSON.stringify({
           contenidoId: movieId,
+          tipoUsuario: tipo,
+          puntaje: rating,
           comentario: comment,
-          puntuacion: rating,
         }),
       });
       if (!response.ok) {
@@ -168,6 +211,25 @@ export default class PelisApi {
     } catch (error) {
       console.error('Error setting comment:', error);
       throw new Error('Failed to set comment');
+    }
+  }
+
+  async checkAuth() {
+    try {
+      const response = await fetch(`${environment.apiUrl}/auth-check`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('No esta autenticado ');
+      }
+
+      const payload = await response.json();
+      const data = payload;
+      console.log('checkAuth response data:', data);
+      return data.user;
+    } catch (error) {
+      console.error('Error checking authentication:', error);
+      throw new Error('Failed to check authentication');
     }
   }
 }

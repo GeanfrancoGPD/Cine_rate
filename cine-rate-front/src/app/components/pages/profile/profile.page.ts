@@ -9,12 +9,11 @@ import UserActivityService from '../../../services/user-activity.service';
 import { TopBarComponent } from '../../molecules/top-bar/top-bar.component';
 import { BottomNavComponent } from '../../molecules/bottom-nav/bottom-nav.component';
 import { ProfileStatsComponent } from '../../molecules/profile-stats/profile-stats.component';
-import { ProfileCommentComponent } from '../../molecules/profile-comment/profile-comment.component';
-import { UserAdminListComponent, type AdminUser } from '../../molecules/user-admin-list/user-admin-list.component';
 import {
-  UserProfile,
-  UserComment,
-} from '../../../data/mock-data';
+  UserAdminListComponent,
+  type AdminUser,
+} from '../../molecules/user-admin-list/user-admin-list.component';
+import { UserProfile, UserComment } from '../../../data/mock-data';
 import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
 import {
@@ -23,6 +22,8 @@ import {
   createOutline,
   trashOutline,
 } from 'ionicons/icons';
+import services from '../../../services/pelis-api';
+import { inject } from '@angular/core';
 
 addIcons({ personCircleOutline, logOutOutline, createOutline, trashOutline });
 @Component({
@@ -37,7 +38,6 @@ addIcons({ personCircleOutline, logOutOutline, createOutline, trashOutline });
     TopBarComponent,
     BottomNavComponent,
     ProfileStatsComponent,
-    ProfileCommentComponent,
     UserAdminListComponent,
   ],
   templateUrl: './profile.page.html',
@@ -54,6 +54,7 @@ export class ProfilePage implements OnInit {
     subdivisions: 0,
     comments: [],
   };
+  private readonly pelisApi = inject(services);
 
   editingCommentId: number | null = null;
   editingText = '';
@@ -76,34 +77,30 @@ export class ProfilePage implements OnInit {
 
   async loadUser() {
     try {
-      const response: any = await lastValueFrom(
-        this.http.get(`${environment.apiUrl}/auth-check`, { withCredentials: true })
-      );
-
-      if (response?.success && response?.user) {
-        const stats = this.userActivity.getStats();
-        this.isAdmin = String(response.user.tipo || '').toUpperCase() === 'ADMIN';
-        this.user = {
-          name: response.user.nombre || response.user.email || 'Usuario',
-          email: response.user.email || '',
-          password: '',
-          avatar: '',
-          media: stats.media,
-          vistas: stats.vistas,
-          subdivisions: 0,
-          comments: [],
-        };
-        this.syncStats();
-        if (this.isAdmin) {
-          await this.loadAdminUsers();
-        } else {
-          this.adminUsers = [];
-        }
-      } else {
+      const user = await this.pelisApi.checkAuth();
+      if (!user) {
         this.router.navigate(['/login']);
       }
+      this.isAdmin = user.tipo === 'ADMIN';
+      this.user = {
+        name: user.nombre || user.email || '',
+        email: user.email || '',
+        password: '',
+        avatar: user.avatar || '',
+        media: 0,
+        vistas: 0,
+        subdivisions: 0,
+        comments: [],
+      };
+
+      if (this.isAdmin) {
+        await this.loadAdminUsers();
+      } else {
+        this.adminUsers = [];
+      }
+      this.syncStats();
     } catch (error) {
-      this.router.navigate(['/login']);
+      console.log('Error al verificar la autenticación:', error);
     }
   }
 
@@ -206,7 +203,11 @@ export class ProfilePage implements OnInit {
   async logout() {
     try {
       await lastValueFrom(
-        this.http.post(`${environment.apiUrl}/logout`, {}, { withCredentials: true })
+        this.http.post(
+          `${environment.apiUrl}/logout`,
+          {},
+          { withCredentials: true },
+        ),
       );
     } catch (error) {
       // Ignorar error de cierre de sesión y seguir al login
@@ -221,11 +222,15 @@ export class ProfilePage implements OnInit {
     if (ok) {
       try {
         const response: any = await lastValueFrom(
-          this.http.delete(`${environment.apiUrl}/user`, { withCredentials: true })
+          this.http.delete(`${environment.apiUrl}/user`, {
+            withCredentials: true,
+          }),
         );
 
         if (!response?.success) {
-          throw new Error(response?.message || 'No se pudo eliminar la cuenta.');
+          throw new Error(
+            response?.message || 'No se pudo eliminar la cuenta.',
+          );
         }
       } catch (error) {
         alert('No se pudo eliminar la cuenta.');

@@ -7,12 +7,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { BottomNavComponent } from '../../molecules/bottom-nav/bottom-nav.component';
 import { RatingStarsComponent } from '../../atom/rating-stars/rating-stars.component';
 import { ReviewCardComponent } from '../../molecules/review-card/review-card.component';
-import { Movie, MOCK_USER_PROFILE, Review } from '../../../data/mock-data';
+import { Movie, Review } from '../../../data/mock-data';
 import { FormsModule } from '@angular/forms';
 import services from '../../../services/pelis-api';
 import UserActivityService from '../../../services/user-activity.service';
-import { lastValueFrom } from 'rxjs';
-import { environment } from '../../../../environments/environment';
 
 import { addIcons } from 'ionicons';
 import { arrowBackOutline, personCircleOutline } from 'ionicons/icons';
@@ -36,14 +34,47 @@ export class MovieDetailPage implements OnInit {
   private readonly pelisApi = inject(services);
   private readonly userActivity = inject(UserActivityService);
   private readonly http = inject(HttpClient);
+  private readonly id = Number(this.route.snapshot.paramMap.get('id'));
   movie?: Movie;
   selectedRating = 5;
   reviewText = '';
-  currentUser = MOCK_USER_PROFILE.name;
-  currentUserRole: 'user' | 'critic' = 'user';
+  user = {
+    id: 0,
+    nombre: '',
+    email: '',
+    tipo: '',
+    comments: [],
+  };
   editingReviewId: number | null = null;
   editingText = '';
   editingRating = 5;
+
+  private normalizeReviewerType(value: unknown): 'user' | 'critic' {
+    const normalized = String(value ?? '').trim().toLowerCase();
+    return normalized === 'critic' || normalized === 'critico'
+      ? 'critic'
+      : 'user';
+  }
+
+  private normalizeReview(apiReview: any): Review {
+    const rawRating = Number(
+      apiReview?.puntaje ?? apiReview?.puntuacion ?? apiReview?.rating ?? 0,
+    );
+    const reviewerType = this.normalizeReviewerType(
+      apiReview?.reviewerType ??
+        apiReview?.tipo_usuario ??
+        apiReview?.tipoUsuario ??
+        apiReview?.tipo,
+    );
+    return {
+      id: Number(apiReview?.id ?? 0),
+      author: apiReview?.nombre ?? apiReview?.author ?? '',
+      comment: apiReview?.comentario ?? apiReview?.comment ?? '',
+      rating: Number.isFinite(rawRating) ? rawRating : 0,
+      date: apiReview?.fecha_creacion ?? apiReview?.date ?? '',
+      reviewerType,
+    };
+  }
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -56,16 +87,24 @@ export class MovieDetailPage implements OnInit {
     }
   }
 
-  async ngOnInit() {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
+  private async loadCurrentUser() {
+    const User = await this.pelisApi.checkAuth();
+    console.log('tipo de usuario:', User);
+    if (!User) {
+      this.router.navigate(['/login']);
+    }
+    this.user = User;
+    return User;
+  }
 
-    await this.loadCurrentUserRole();
+  async ngOnInit() {
+    await this.loadCurrentUser();
 
     try {
       if (!this.movie) {
-        const apiMovie = await this.pelisApi.getMovieById(id);
+        const apiMovie = await this.pelisApi.getMovieById(this.id);
         if (!apiMovie) {
-          console.error('No se encontró la película con ID:', id);
+          console.error('No se encontró la película con ID:', this.id);
           return;
         }
         this.movie = apiMovie;
@@ -74,17 +113,13 @@ export class MovieDetailPage implements OnInit {
       }
 
       console.log('Cargando comentarios...');
-      const reviews = await this.pelisApi.getComments(id);
+      const reviews = await this.pelisApi.getComments(this.id);
       console.log('Comentarios cargados:', reviews);
-
-      this.movie.reviews = reviews.map((review) => ({
-        id: review.id,
-        author: review.nombre,
-        comment: review.comentario,
-        rating: review.puntuacion,
-        date: review.fecha_creacion,
-        reviewerType: review.reviewerType,
-      }));
+      console.log('Comentarios sin normalizar:', reviews);
+      this.movie.reviews = reviews.map((review) =>
+        this.normalizeReview(review),
+      );
+      console.log('Comentarios normalizados:', this.movie.reviews);
 
       if (!reviews || reviews.length === 0) {
         console.log('La película no tiene comentarios aún.');
@@ -178,49 +213,34 @@ export class MovieDetailPage implements OnInit {
       return;
     }
 
-    const reviewerType = this.currentUserRole === 'critic' ? 'critic' : 'user';
     const newReview = {
-      id: Date.now(),
-      author: this.currentUser || MOCK_USER_PROFILE.name || 'Usuario',
-      avatar: '',
+      contenidoId: this.id,
+      author: this.user.nombre,
       rating: this.selectedRating,
       comment: text,
-      date: new Date().toISOString().slice(0, 10),
-      reviewerType,
+      reviewerType: this.normalizeReviewerType(this.user.tipo),
     };
 
     if (this.movie) {
       this.movie.reviews = this.movie.reviews || [];
       this.movie.reviews.unshift(newReview as any);
+      console.log('Nueva reseña agregada:', newReview);
+      this.pelisApi.setComment(
+        this.id,
+        text,
+        this.selectedRating,
+        this.user.tipo,
+      );
       this.userActivity.recordWatchedMovie(this.movie, this.selectedRating);
     }
 
     this.reviewText = '';
     this.selectedRating = 5;
     this.pelisApi.getComments(this.movie!.id).then((reviews) => {
-      this.movie!.reviews = reviews || [];
-    });
-  }
-
-  private async loadCurrentUserRole() {
-    try {
-      const response: any = await lastValueFrom(
-        this.http.get(`${environment.apiUrl}/auth-check`, {
-          withCredentials: true,
-        }),
+      this.movie!.reviews = (reviews || []).map((review) =>
+        this.normalizeReview(review),
       );
-
-      if (response?.success && response?.user) {
-        this.currentUser =
-          response.user.nombre || response.user.email || this.currentUser;
-        const tipo = String(response.user.tipo || '')
-          .trim()
-          .toUpperCase();
-        this.currentUserRole = tipo === 'CRITICO' ? 'critic' : 'user';
-      }
-    } catch {
-      this.currentUserRole = 'user';
-    }
+    });
   }
 
   private reclassifyCurrentUserReviews() {
@@ -228,9 +248,9 @@ export class MovieDetailPage implements OnInit {
       return;
     }
 
-    const reviewerType = this.currentUserRole === 'critic' ? 'critic' : 'user';
+    const reviewerType = this.normalizeReviewerType(this.user.tipo);
     this.movie.reviews = this.movie.reviews.map((review) => {
-      if (review.author === this.currentUser) {
+      if (review.author === this.user.nombre) {
         return { ...review, reviewerType };
       }
       return review;
@@ -238,10 +258,10 @@ export class MovieDetailPage implements OnInit {
   }
 
   isReviewOwner(review: Review) {
-    return review.author === this.currentUser;
+    return review.author === this.user.nombre;
   }
 
-  startEditing(review: Review) {
+  async startEditing(review: Review) {
     this.editingReviewId = review.id;
     this.editingText = review.comment;
     this.editingRating = review.rating;
@@ -251,7 +271,7 @@ export class MovieDetailPage implements OnInit {
     this.editingReviewId = null;
   }
 
-  saveEditedReview(review: Review) {
+  async saveEditedReview(review: Review) {
     const trimmed = this.editingText?.trim();
     if (!trimmed) {
       alert('Escribe tu reseña antes de guardar.');
@@ -261,9 +281,11 @@ export class MovieDetailPage implements OnInit {
     review.rating = this.editingRating;
     review.date = new Date().toISOString().slice(0, 10);
     this.editingReviewId = null;
+    console.log('llamando a la funcion de update.....');
+    await this.pelisApi.updateComment(review.id, review.comment, review.rating);
   }
 
-  deleteReview(reviewId: number) {
+  async deleteReview(reviewId: number) {
     if (!this.movie) {
       return;
     }
@@ -271,5 +293,6 @@ export class MovieDetailPage implements OnInit {
     if (this.editingReviewId === reviewId) {
       this.cancelEditing();
     }
+    await this.pelisApi.deleteComment(reviewId);
   }
 }

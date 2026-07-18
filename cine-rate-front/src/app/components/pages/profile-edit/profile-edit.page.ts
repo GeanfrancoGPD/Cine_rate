@@ -12,7 +12,7 @@ import { environment } from '../../../../environments/environment';
   standalone: true,
   imports: [CommonModule, IonContent, IonButton, IonInput, FormsModule],
   templateUrl: './profile-edit.page.html',
-  styleUrls: ['./profile-edit.page.scss']
+  styleUrls: ['./profile-edit.page.scss'],
 })
 export class ProfileEditPage implements OnInit {
   user = {
@@ -29,7 +29,9 @@ export class ProfileEditPage implements OnInit {
   async ngOnInit() {
     try {
       const response: any = await lastValueFrom(
-        this.http.get(`${environment.apiUrl}/auth-check`, { withCredentials: true })
+        this.http.get(`${environment.apiUrl}/auth-check`, {
+          withCredentials: true,
+        }),
       );
 
       if (response?.success && response?.user) {
@@ -55,18 +57,24 @@ export class ProfileEditPage implements OnInit {
 
       if (Object.keys(payload).length > 0) {
         const response: any = await lastValueFrom(
-          this.http.put(`${environment.apiUrl}/user`, payload, { withCredentials: true })
+          this.http.put(`${environment.apiUrl}/user`, payload, {
+            withCredentials: true,
+          }),
         );
 
         if (!response?.success) {
-          throw new Error(response?.message || 'No se pudo actualizar el perfil.');
+          throw new Error(
+            response?.message || 'No se pudo actualizar el perfil.',
+          );
         }
       }
     } catch (error) {
       alert('No se pudo actualizar el perfil.');
       return;
     }
-    this.router.navigate(['/profile'], { queryParams: { refresh: Date.now() } });
+    this.router.navigate(['/profile'], {
+      queryParams: { refresh: Date.now() },
+    });
   }
 
   cancel() {

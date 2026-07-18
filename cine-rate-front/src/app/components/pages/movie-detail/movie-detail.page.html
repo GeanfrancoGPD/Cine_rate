@@ -6,13 +6,16 @@
       <ion-icon name="arrow-back-outline"></ion-icon>
     </ion-button>
     <span class="header-title">Detalle</span>
-    <div style="width: 40px;"></div>
+    <div style="width: 40px"></div>
   </div>
 
   <div class="content" *ngIf="movie">
     <div class="movie-top">
       <ng-container *ngIf="movie.poster; else posterPlaceholder">
-        <div class="poster" [style.background-image]="'url(' + movie.poster + ')'"> </div>
+        <div
+          class="poster"
+          [style.background-image]="'url(' + movie.poster + ')'"
+        ></div>
       </ng-container>
       <ng-template #posterPlaceholder>
         <div class="poster placeholder">
@@ -28,16 +31,25 @@
         </div>
         <div class="rating-row">
           <div class="global-score-label">Puntaje global</div>
-          <app-rating-stars [rating]="globalRating ?? movie.rating" size="24px"></app-rating-stars>
+          <app-rating-stars
+            [rating]="globalRating ?? movie.rating"
+            size="24px"
+          ></app-rating-stars>
         </div>
         <div class="rating-legend">
           <div class="legend-item user-legend">
             <span class="legend-dot"></span>
-            <span>Usuarios: {{ userAverageRating !== null ? (userAverageRating | number:'1.1-1') : 'Sin reseñas' }}</span>
+            <span
+              >Usuarios: {{ userAverageRating !== null ? (userAverageRating |
+              number:'1.1-1') : 'Sin reseñas' }}</span
+            >
           </div>
           <div class="legend-item critic-legend">
             <span class="legend-dot"></span>
-            <span>Críticos: {{ criticAverageRating !== null ? (criticAverageRating | number:'1.1-1') : 'Sin reseñas' }}</span>
+            <span
+              >Críticos: {{ criticAverageRating !== null ? (criticAverageRating
+              | number:'1.1-1') : 'Sin reseñas' }}</span
+            >
           </div>
         </div>
       </div>
@@ -48,7 +60,12 @@
       <p>{{ movie.synopsis || 'Sin sinopsis disponible.' }}</p>
     </div>
     <div class="reviews-section">
-      <h3>Reseñas <span class="review-count">({{ movie.reviews.length || 0 }} respuestas)</span></h3>
+      <h3>
+        Reseñas
+        <span class="review-count"
+          >({{ movie.reviews.length || 0 }} respuestas)</span
+        >
+      </h3>
       <div *ngIf="movie.reviews && movie.reviews.length > 0">
         <div
           *ngFor="let review of movie.reviews"
@@ -57,8 +74,16 @@
         >
           <app-review-card [review]="review"></app-review-card>
           <div class="review-owner-actions" *ngIf="isReviewOwner(review)">
-            <ion-button fill="clear" size="small" (click)="startEditing(review)">Editar</ion-button>
-            <ion-button fill="clear" size="small" color="danger" (click)="deleteReview(review.id)">Eliminar</ion-button>
+            <ion-button fill="clear" size="small" (click)="startEditing(review)"
+              >Editar</ion-button
+            >
+            <ion-button
+              fill="clear"
+              size="small"
+              color="danger"
+              (click)="deleteReview(review.id)"
+              >Eliminar</ion-button
+            >
           </div>
 
           <div class="edit-box" *ngIf="editingReviewId === review.id">
@@ -77,13 +102,24 @@
               ></ion-icon>
             </div>
             <div class="edit-actions">
-              <ion-button fill="solid" size="small" color="success" (click)="saveEditedReview(review)">Guardar</ion-button>
-              <ion-button fill="clear" size="small" (click)="cancelEditing()">Cancelar</ion-button>
+              <ion-button
+                fill="solid"
+                size="small"
+                color="success"
+                (click)="saveEditedReview(review)"
+                >Guardar</ion-button
+              >
+              <ion-button fill="clear" size="small" (click)="cancelEditing()"
+                >Cancelar</ion-button
+              >
             </div>
           </div>
         </div>
       </div>
-      <p *ngIf="!movie.reviews || movie.reviews.length === 0" class="no-reviews">
+      <p
+        *ngIf="!movie.reviews || movie.reviews.length === 0"
+        class="no-reviews"
+      >
         Aún no hay reseñas. ¡Sé el primero!
       </p>
     </div>
@@ -91,7 +127,11 @@
     <div class="review-form">
       <h4>¿Qué te pareció la película?</h4>
       <div class="review-input">
-        <textarea [(ngModel)]="reviewText" maxlength="200" placeholder="Escribe tu reseña aquí..."></textarea>
+        <textarea
+          [(ngModel)]="reviewText"
+          maxlength="200"
+          placeholder="Escribe tu reseña aquí..."
+        ></textarea>
         <div class="char-row">
           <span class="char-count">{{ reviewText.length || 0 }} / 200</span>
         </div>

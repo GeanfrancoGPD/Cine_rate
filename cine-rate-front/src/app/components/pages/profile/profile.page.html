@@ -23,7 +23,11 @@
           </ion-button>
         </div>
         <div class="danger-actions">
-          <ion-button fill="clear" class="action-btn delete" (click)="confirmDelete()">
+          <ion-button
+            fill="clear"
+            class="action-btn delete"
+            (click)="confirmDelete()"
+          >
             <ion-icon name="trash-outline"></ion-icon>
             <span>Eliminar</span>
           </ion-button>
@@ -35,31 +39,6 @@
       [media]="user.media"
       [vistas]="user.vistas"
     ></app-profile-stats>
-
-    <div class="comments-section" *ngIf="!isAdmin">
-      <h3>Mis Comentarios</h3>
-      <div class="comments-list">
-        <div class="profile-comment-wrapper" *ngFor="let comment of user.comments">
-          <app-profile-comment [comment]="comment"></app-profile-comment>
-          <div class="comment-actions">
-            <ion-button fill="clear" size="small" (click)="startEditingComment(comment)">Editar</ion-button>
-            <ion-button fill="clear" size="small" color="danger" (click)="deleteComment(comment.id)">Eliminar</ion-button>
-          </div>
-
-          <div class="edit-box" *ngIf="editingCommentId === comment.id">
-            <textarea
-              [(ngModel)]="editingText"
-              maxlength="200"
-              placeholder="Editar tu comentario..."
-            ></textarea>
-            <div class="edit-actions">
-              <ion-button fill="solid" size="small" color="success" (click)="saveEditedComment(comment)">Guardar</ion-button>
-              <ion-button fill="clear" size="small" (click)="cancelEditingComment()">Cancelar</ion-button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <app-user-admin-list
       *ngIf="isAdmin"

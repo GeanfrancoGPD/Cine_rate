@@ -1,6 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonSelect, IonSelectOption, IonItem, IonLabel } from '@ionic/angular/standalone';
+import {
+  IonContent,
+  IonSelect,
+  IonSelectOption,
+  IonItem,
+  IonLabel,
+} from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { TopBarComponent } from '../../molecules/top-bar/top-bar.component';
 import { BottomNavComponent } from '../../molecules/bottom-nav/bottom-nav.component';
@@ -24,10 +30,10 @@ import UserActivityService from '../../../services/user-activity.service';
     TopBarComponent,
     BottomNavComponent,
     MovieCardComponent,
-    GenreChipComponent
+    GenreChipComponent,
   ],
   templateUrl: './activity.page.html',
-  styleUrls: ['./activity.page.scss']
+  styleUrls: ['./activity.page.scss'],
 })
 export class ActivityPage implements OnInit {
   watchedMovies: Movie[] = [];
@@ -63,7 +69,7 @@ export class ActivityPage implements OnInit {
   }
 
   goToMovieDetail(movie: Movie) {
-    this.router.navigate(['/movie', movie.id]);
+    this.router.navigate(['/movie', movie.id], { state: { movie } });
   }
 
   selectGenre(genre: string) {
@@ -141,16 +147,21 @@ export class ActivityPage implements OnInit {
     const term = this.searchTerm.trim().toLowerCase();
     let list = this.watchedMovies.slice();
     if (this.activeGenre) {
-      list = list.filter(m => this.matchesGenre(m, this.activeGenre));
+      list = list.filter((m) => this.matchesGenre(m, this.activeGenre));
     }
     if (term) {
-      list = list.filter(m => (m.title || '').toLowerCase().includes(term));
+      list = list.filter((m) => (m.title || '').toLowerCase().includes(term));
     }
     if (this.minRating && this.minRating > 0) {
-      list = list.filter(m => this.getDisplayRating(m.rating) >= this.minRating);
+      list = list.filter(
+        (m) => this.getDisplayRating(m.rating) >= this.minRating,
+      );
     }
     if (this.sortBy === 'rating') {
-      list.sort((a, b) => this.getDisplayRating(b.rating) - this.getDisplayRating(a.rating));
+      list.sort(
+        (a, b) =>
+          this.getDisplayRating(b.rating) - this.getDisplayRating(a.rating),
+      );
     } else {
       const parseYear = (value?: string) => {
         const match = String(value || '').match(/(\d{4})/);
